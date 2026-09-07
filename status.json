@@ -1,0 +1,26 @@
+{
+  "project": "qalinraac-academy-lms",
+  "tenancy": "single-tenant",
+  "academy": "Qalinraac Academy",
+  "updatedAt": "2026-09-05T07:30:00.000Z",
+  "currentPhase": "complete",
+  "backlog": {
+    "payments-live": "done",
+    "email-ses": "done",
+    "tiptap-editor": "done",
+    "r2-sharp": "done",
+    "reports-export": "done",
+    "expand-tests": "done"
+  },
+  "phases": {
+    "phase-0": { "name": "Foundation", "status": "done" },
+    "phase-1": { "name": "Auth + RBAC", "status": "done" },
+    "phase-2": { "name": "Academic core", "status": "done" },
+    "phase-3": { "name": "Online learning", "status": "done" },
+    "phase-4": { "name": "Assessment", "status": "done" },
+    "phase-5": { "name": "Certificates + research", "status": "done" },
+    "phase-6": { "name": "Finance + payments", "status": "done" },
+    "phase-7": { "name": "Notifications, reports, admin", "status": "done" },
+    "phase-8": { "name": "Hardening + public website", "status": "done" }
+  }
+}
