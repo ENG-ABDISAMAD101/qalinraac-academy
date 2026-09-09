@@ -20,4 +20,10 @@ filesRouter.get(
   asyncHandler(controller.signedUrl),
 );
 
-filesRouter.get("/:id/download", authenticate, asyncHandler(controller.download));
+filesRouter.get("/:id/view", asyncHandler(controller.view));
+
+filesRouter.get(
+  "/:id/download",
+  authenticate,
+  asyncHandler(controller.download),
+);

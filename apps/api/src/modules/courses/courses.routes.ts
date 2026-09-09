@@ -56,6 +56,13 @@ coursesRouter.post(
   asyncHandler(controller.publish),
 );
 
+coursesRouter.post(
+  "/:id/request-changes",
+  authenticate,
+  requirePermission("courses:publish"),
+  asyncHandler(controller.requestChanges),
+);
+
 coursesRouter.delete(
   "/:id",
   authenticate,

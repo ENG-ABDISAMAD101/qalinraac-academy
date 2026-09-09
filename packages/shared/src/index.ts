@@ -6,6 +6,7 @@ export const AcademyRole = z.enum([
   "Admin",
   "Instructor",
   "Student",
+  "Academic",
   "Finance",
   "Researcher",
 ]);
@@ -77,6 +78,19 @@ export const ROLE_PERMISSIONS: Record<AcademyRole, Permission[]> = {
     "admin:settings",
     "audit:read",
   ],
+  Academic: [
+    "users:read",
+    "courses:read",
+    "courses:publish",
+    "enrollments:manage",
+    "lessons:read",
+    "files:upload",
+    "certificates:issue",
+    "certificates:read",
+    "notifications:read",
+    "notifications:send",
+    "reports:read",
+  ],
   Instructor: [
     "courses:read",
     "courses:write",
@@ -95,6 +109,7 @@ export const ROLE_PERMISSIONS: Record<AcademyRole, Permission[]> = {
     "courses:read",
     "lessons:read",
     "progress:write",
+    "files:upload",
     "quizzes:attempt",
     "assignments:submit",
     "gradebook:read",
@@ -124,6 +139,7 @@ export const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8).max(128),
   fullName: z.string().min(2).max(120),
+  phone: z.string().min(7).max(24).optional(),
   role: AcademyRole.default("Student"),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -163,7 +179,34 @@ export const paginationQuerySchema = z.object({
 });
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 
-export const courseStatusSchema = z.enum(["draft", "published", "archived"]);
+export const courseStatusSchema = z.enum([
+  "draft",
+  "pending_review",
+  "published",
+  "rejected",
+  "archived",
+]);
+export type CourseStatus = z.infer<typeof courseStatusSchema>;
+
+export const courseLevelSchema = z.enum([
+  "beginner",
+  "intermediate",
+  "advanced",
+]);
+export type CourseLevel = z.infer<typeof courseLevelSchema>;
+
+export const courseCategorySchema = z.enum([
+  "development",
+  "design",
+  "business",
+  "marketing",
+  "it_software",
+  "personal_development",
+  "data_science",
+  "other",
+]);
+export type CourseCategory = z.infer<typeof courseCategorySchema>;
+
 export const certificateStatusSchema = z.enum([
   "pending",
   "approved",

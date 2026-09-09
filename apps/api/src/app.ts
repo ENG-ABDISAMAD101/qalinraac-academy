@@ -1,5 +1,6 @@
 import cors from "cors";
 import express, { type Express } from "express";
+import path from "node:path";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -23,12 +24,19 @@ import * as financeController from "./modules/finance/finance.controller.js";
 import { notificationsRouter } from "./modules/notifications/notifications.routes.js";
 import { reportsRouter } from "./modules/reports/reports.routes.js";
 import { adminRouter } from "./modules/admin/admin.routes.js";
+import { studentsRouter } from "./modules/students/students.routes.js";
+import { instructorsRouter } from "./modules/instructors/instructors.routes.js";
+import { academicRouter } from "./modules/academic/academic.routes.js";
 import { asyncHandler } from "./lib/async-handler.js";
 
 export function createApp(): Express {
   const app = express();
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    }),
+  );
   app.use(
     cors({
       origin: env.CORS_ORIGIN,
@@ -56,6 +64,11 @@ export function createApp(): Express {
     }),
   );
 
+  app.use(
+    "/uploads",
+    express.static(path.resolve(process.cwd(), env.UPLOAD_DIR)),
+  );
+
   app.use(`${p}/docs`, swaggerUi.serve, swaggerUi.setup(openApiDocument));
   app.use(`${p}/health`, healthRouter);
   app.use(`${p}/auth`, authRouter);
@@ -72,6 +85,9 @@ export function createApp(): Express {
   app.use(`${p}/notifications`, notificationsRouter);
   app.use(`${p}/reports`, reportsRouter);
   app.use(`${p}/admin`, adminRouter);
+  app.use(`${p}/students`, studentsRouter);
+  app.use(`${p}/instructors`, instructorsRouter);
+  app.use(`${p}/academic`, academicRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

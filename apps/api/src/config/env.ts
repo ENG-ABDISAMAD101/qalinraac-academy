@@ -1,7 +1,17 @@
 import { config } from "dotenv";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
-config();
+const apiRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+config({ path: path.join(apiRoot, ".env") });
+config(); // allow process.cwd() overrides
+
+/** Treat blank env strings as unset. */
+const optionalNonEmpty = z
+  .string()
+  .optional()
+  .transform((v) => (v && v.trim() ? v.trim() : undefined));
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -19,11 +29,12 @@ const envSchema = z.object({
     .default("false")
     .transform((v) => v === "true"),
   UPLOAD_DIR: z.string().default("uploads"),
-  R2_ACCOUNT_ID: z.string().optional(),
-  R2_ACCESS_KEY_ID: z.string().optional(),
-  R2_SECRET_ACCESS_KEY: z.string().optional(),
-  R2_BUCKET: z.string().optional(),
-  R2_PUBLIC_URL: z.string().optional(),
+  R2_ACCOUNT_ID: optionalNonEmpty,
+  R2_ACCESS_KEY_ID: optionalNonEmpty,
+  R2_SECRET_ACCESS_KEY: optionalNonEmpty,
+  R2_BUCKET: optionalNonEmpty,
+  R2_PUBLIC_URL: optionalNonEmpty,
+  R2_ENDPOINT: optionalNonEmpty,
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   WAAFI_API_URL: z.string().default("https://api.waafipay.net/asm"),

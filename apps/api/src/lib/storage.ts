@@ -18,11 +18,14 @@ export function getR2Client(): S3Client | null {
   if (!r2Client) {
     r2Client = new S3Client({
       region: "auto",
-      endpoint: `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      endpoint:
+        env.R2_ENDPOINT ||
+        `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
       credentials: {
         accessKeyId: env.R2_ACCESS_KEY_ID!,
         secretAccessKey: env.R2_SECRET_ACCESS_KEY!,
       },
+      forcePathStyle: true,
     });
   }
   return r2Client;
@@ -70,11 +73,13 @@ export async function uploadToR2(params: {
     }),
   );
 
+  // Prefer custom public CDN / r2.dev pub URL. Without it, callers should
+  // expose a signed or proxied view URL (bucket-name.r2.dev is not public).
   const url = env.R2_PUBLIC_URL
     ? `${env.R2_PUBLIC_URL.replace(/\/$/, "")}/${params.key}`
-    : `https://${env.R2_BUCKET}.r2.dev/${params.key}`;
+    : "";
 
-  logger.info("Uploaded to R2", { key: params.key });
+  logger.info("Uploaded to R2", { key: params.key, public: Boolean(url) });
   return { key: params.key, url };
 }
 
@@ -88,10 +93,23 @@ export async function getR2SignedUrl(key: string, expiresIn = 3600) {
   );
 }
 
+/** Readable stream of an R2 object for authenticated API proxy downloads. */
+export async function getR2ObjectStream(key: string) {
+  const client = getR2Client();
+  if (!client || !env.R2_BUCKET) return null;
+  const result = await client.send(
+    new GetObjectCommand({ Bucket: env.R2_BUCKET, Key: key }),
+  );
+  const body = result.Body;
+  if (!body) return null;
+  // AWS SDK v3 Body is a web/Node readable stream.
+  return body as NodeJS.ReadableStream;
+}
+
 export function localReadStream(absolutePath: string) {
   return createReadStream(absolutePath);
 }
 
-export function basenameKey(filename: string) {
-  return `uploads/${path.basename(filename)}`;
+export function basenameKey(filename: string, folder = "uploads") {
+  return `${folder.replace(/\/$/, "")}/${path.basename(filename)}`;
 }

@@ -6,6 +6,7 @@ import { Course } from "../models/Course.js";
 import { Enrollment } from "../models/Enrollment.js";
 import { Lesson } from "../models/Lesson.js";
 import { Module } from "../models/Module.js";
+import { InstructorAgreement } from "../models/InstructorAgreement.js";
 import { User } from "../models/User.js";
 
 export async function seedDatabase() {
@@ -31,8 +32,16 @@ export async function seedDatabase() {
       fullName: "Sample Instructor",
       role: "Instructor",
       permissions: [...ROLE_PERMISSIONS.Instructor],
+      courseLimit: 1,
+      onboardingCompleted: true,
+      onboardingCompletedAt: new Date(),
     });
     logger.info(`Seeded Instructor: ${instructorEmail}`);
+  } else {
+    if (instructor.courseLimit == null) {
+      instructor.courseLimit = 1;
+      await instructor.save();
+    }
   }
 
   const studentEmail = "student@qalinraac.local";
@@ -59,6 +68,25 @@ export async function seedDatabase() {
       permissions: [...ROLE_PERMISSIONS.Finance],
     });
     logger.info(`Seeded Finance: ${financeEmail}`);
+  }
+
+  const academicEmail = "academic@qalinraac.local";
+  let academic = await User.findOne({ email: academicEmail });
+  if (!academic) {
+    academic = await User.create({
+      email: academicEmail,
+      passwordHash: await bcrypt.hash("Academic123!", 10),
+      fullName: "Academic Officer",
+      role: "Academic",
+      permissions: [...ROLE_PERMISSIONS.Academic],
+      phone: "+252 61 333 4444",
+      bio: "Academic operations lead at Qalinraac Academy.",
+    });
+    logger.info(`Seeded Academic: ${academicEmail}`);
+  } else if (academic.role !== "Academic") {
+    academic.role = "Academic";
+    academic.permissions = [...ROLE_PERMISSIONS.Academic];
+    await academic.save();
   }
 
   const settings = await AcademySettings.findOne({ key: "default" });
@@ -130,6 +158,24 @@ export async function seedDatabase() {
       unlockedAt: new Date(),
     });
     logger.info("Seeded student enrollment");
+  }
+
+  const agreementCount = await InstructorAgreement.countDocuments();
+  if (agreementCount === 0) {
+    await InstructorAgreement.create({
+      courseId: course._id,
+      courseTitle: course.title,
+      courseDescription: course.description,
+      description:
+        "Instructor partnership agreement for delivering and maintaining this course on Qalinraac Academy. Revenue share and content standards apply.",
+      fileUrl: "/agreement-sample.pdf",
+      fileName: "instructor-agreement.pdf",
+      instructorId: instructor._id,
+      isActive: true,
+      version: "2026.1",
+      createdBy: admin._id,
+    });
+    logger.info("Seeded instructor agreement");
   }
 
   return { admin, instructor, student, finance, course };

@@ -1,5 +1,5 @@
 import { mkdir } from "node:fs";
-import { access, constants, readFile } from "node:fs/promises";
+import { access, constants, readFile, unlink } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import multer from "multer";
@@ -8,6 +8,7 @@ import { env, hasR2Config } from "../../config/env.js";
 import { AppError } from "../../lib/app-error.js";
 import {
   basenameKey,
+  getR2ObjectStream,
   getR2SignedUrl,
   localReadStream,
   processImageIfNeeded,
@@ -40,8 +41,12 @@ const storage = multer.diskStorage({
 
 export const upload = multer({
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 },
+  limits: { fileSize: 500 * 1024 * 1024 },
 });
+
+function fileViewPath(assetId: string) {
+  return `${env.API_PREFIX}/files/${assetId}/view`;
+}
 
 export async function saveUploadedFile(
   file: Express.Multer.File,
@@ -52,22 +57,33 @@ export async function saveUploadedFile(
   const processed = await processImageIfNeeded(file.path, file.mimetype);
   const filename = path.basename(processed.path);
   const relativePath = path.join(env.UPLOAD_DIR, filename).replace(/\\/g, "/");
+  const isImage = processed.mimeType.startsWith("image/");
 
   let storageKind: "local" | "r2" = "local";
   let url = `/${relativePath}`;
   let storagePath = relativePath;
 
   if (hasR2Config()) {
-    const buffer = processed.buffer ?? (await readFile(processed.path));
-    const key = basenameKey(filename);
-    const uploaded = await uploadToR2({
-      key,
-      body: buffer,
-      contentType: processed.mimeType,
-    });
-    storageKind = "r2";
-    url = uploaded.url;
-    storagePath = uploaded.key;
+    try {
+      const buffer = processed.buffer ?? (await readFile(processed.path));
+      const key = basenameKey(filename, isImage ? "avatars" : "uploads");
+      const uploaded = await uploadToR2({
+        key,
+        body: buffer,
+        contentType: processed.mimeType,
+      });
+      storageKind = "r2";
+      storagePath = uploaded.key;
+      // Prefer CDN public URL; otherwise a stable API view path (signed redirect).
+      url = uploaded.url || "";
+      await unlink(processed.path).catch(() => undefined);
+    } catch (err) {
+      throw new AppError(
+        502,
+        "R2_UPLOAD_FAILED",
+        err instanceof Error ? err.message : "Failed to upload file to R2",
+      );
+    }
   }
 
   const asset = await FileAsset.create({
@@ -76,11 +92,24 @@ export async function saveUploadedFile(
     size: processed.size,
     storage: storageKind,
     path: storagePath,
-    url,
+    url: url || undefined,
     uploadedBy,
   });
 
-  return asset;
+  if (!asset.url) {
+    asset.url = fileViewPath(String(asset._id));
+    await asset.save();
+  }
+
+  return {
+    id: String(asset._id),
+    originalName: asset.originalName,
+    mimeType: asset.mimeType,
+    size: asset.size,
+    storage: asset.storage,
+    path: asset.path,
+    url: asset.url,
+  };
 }
 
 export async function getDownloadInfo(assetId: string, userId: string) {
@@ -89,12 +118,26 @@ export async function getDownloadInfo(assetId: string, userId: string) {
 
   if (asset.storage === "r2") {
     const signed = await getR2SignedUrl(asset.path);
+    const publicUrl =
+      env.R2_PUBLIC_URL && asset.path
+        ? `${env.R2_PUBLIC_URL.replace(/\/$/, "")}/${asset.path}`
+        : null;
+
+    // Prefer proxying through the API so authenticated browser downloads
+    // work without R2 CORS. Public CDN URL is still exposed for signed-url.
+    const r2Stream = await getR2ObjectStream(asset.path);
+    if (!r2Stream) {
+      throw new AppError(404, "FILE_MISSING", "File missing in storage");
+    }
+
     return {
       asset,
-      signedUrl: signed ?? asset.url,
-      stream: null as null,
+      signedUrl: publicUrl ?? signed ?? asset.url,
+      stream: () => r2Stream,
       absolutePath: null as null,
-      redirectUrl: signed ?? asset.url,
+      // Only redirect when client explicitly wants the CDN/signed link.
+      redirectUrl: null as null,
+      publicUrl,
     };
   }
 
@@ -113,5 +156,24 @@ export async function getDownloadInfo(assetId: string, userId: string) {
     stream: () => localReadStream(absolute),
     absolutePath: absolute,
     redirectUrl: null as null,
+    publicUrl: null as null,
   };
+}
+
+export async function getPublicViewInfo(assetId: string) {
+  const asset = await FileAsset.findById(assetId);
+  if (!asset) throw new AppError(404, "NOT_FOUND", "File not found");
+  const mime = asset.mimeType ?? "";
+  const allowed =
+    mime.startsWith("image/") ||
+    mime.startsWith("video/") ||
+    mime.startsWith("audio/");
+  if (!allowed) {
+    throw new AppError(
+      403,
+      "FORBIDDEN",
+      "Only images, videos, and audio can be viewed this way",
+    );
+  }
+  return getDownloadInfo(assetId, "public");
 }

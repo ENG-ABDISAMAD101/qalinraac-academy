@@ -55,6 +55,18 @@ export function requirePermission(...perms: Permission[]) {
   };
 }
 
+export function requireRole(...roles: string[]) {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(new AppError(401, "UNAUTHORIZED", "Authentication required"));
+    }
+    if (!roles.includes(req.user.role)) {
+      return next(new AppError(403, "FORBIDDEN", "Insufficient role"));
+    }
+    next();
+  };
+}
+
 export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) {

@@ -7,6 +7,8 @@ export interface IAcademySettings extends Document {
   allowSelfRegistration: boolean;
   defaultCurrency: string;
   certificateRequireCompletion: boolean;
+  /** Instructor share of paid course revenue (0–100). Default 70. */
+  instructorSharePercent: number;
   branding?: {
     primaryColor?: string;
     logoUrl?: string;
@@ -23,6 +25,7 @@ const academySettingsSchema = new Schema<IAcademySettings>(
     allowSelfRegistration: { type: Boolean, default: true },
     defaultCurrency: { type: String, default: "USD" },
     certificateRequireCompletion: { type: Boolean, default: true },
+    instructorSharePercent: { type: Number, default: 70, min: 0, max: 100 },
     branding: {
       primaryColor: { type: String },
       logoUrl: { type: String },

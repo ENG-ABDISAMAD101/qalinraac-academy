@@ -31,6 +31,15 @@ export async function publish(req: Request, res: Response) {
   return sendSuccess(res, data);
 }
 
+export async function requestChanges(req: Request, res: Response) {
+  const data = await service.requestCourseChanges(
+    req.params.id,
+    req.user!.id,
+    typeof req.body?.reason === "string" ? req.body.reason : undefined,
+  );
+  return sendSuccess(res, data);
+}
+
 export async function remove(req: Request, res: Response) {
   const data = await service.deleteCourse(req.params.id, req.user!.id);
   return sendSuccess(res, data);

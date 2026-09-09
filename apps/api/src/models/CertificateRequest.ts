@@ -9,6 +9,7 @@ export interface ICertificateRequest extends Document {
   courseId: Types.ObjectId;
   enrollmentId: Types.ObjectId;
   status: CertificateStatus;
+  recipientName?: string;
   filePath?: string;
   fileUrl?: string;
   issuedAt?: Date;
@@ -28,6 +29,7 @@ const certificateRequestSchema = new Schema<ICertificateRequest>(
       enum: certificateStatusSchema.options,
       default: "pending",
     },
+    recipientName: { type: String, trim: true },
     filePath: { type: String },
     fileUrl: { type: String },
     issuedAt: { type: Date },

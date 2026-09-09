@@ -14,6 +14,8 @@ import { User } from "../../models/User.js";
 
 export const requestCertificateSchema = z.object({
   courseId: z.string().min(1),
+  recipientName: z.string().min(3).max(120).optional(),
+  declarationAccepted: z.literal(true),
 });
 
 export const rejectSchema = z.object({
@@ -42,7 +44,11 @@ async function isCourseCompleted(userId: string, courseId: string, enrollment: {
   return completed >= totalLessons;
 }
 
-export async function requestCertificate(userId: string, courseId: string) {
+export async function requestCertificate(
+  userId: string,
+  input: z.infer<typeof requestCertificateSchema>,
+) {
+  const { courseId, recipientName } = input;
   const enrollment = await Enrollment.findOne({ userId, courseId });
   if (!enrollment) {
     throw new AppError(404, "NOT_ENROLLED", "Enrollment not found");
@@ -67,6 +73,7 @@ export async function requestCertificate(userId: string, courseId: string) {
     courseId,
     enrollmentId: enrollment._id,
     status: "pending",
+    recipientName,
   });
 
   await createNotification({
@@ -173,7 +180,7 @@ export async function rejectCertificate(
 export async function downloadCertificate(id: string, userId: string, role: string) {
   const cert = await CertificateRequest.findById(id);
   if (!cert) throw new AppError(404, "NOT_FOUND", "Certificate request not found");
-  if (String(cert.userId) !== userId && !["Admin", "SuperAdmin"].includes(role)) {
+  if (String(cert.userId) !== userId && !["Admin", "SuperAdmin", "Academic"].includes(role)) {
     throw new AppError(403, "FORBIDDEN", "Not allowed to download this certificate");
   }
   if (cert.status !== "issued" || !cert.filePath) {

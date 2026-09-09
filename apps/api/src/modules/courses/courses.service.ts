@@ -113,14 +113,50 @@ export async function updateCourse(
 export async function publishCourse(id: string, actorId: string) {
   const course = await Course.findById(id);
   if (!course) throw new AppError(404, "NOT_FOUND", "Course not found");
+  if (course.status !== "pending_review") {
+    throw new AppError(
+      400,
+      "INVALID_STATUS",
+      "Only courses pending review can be approved",
+    );
+  }
   course.status = "published";
   course.publishedAt = new Date();
+  course.rejectionReason = undefined;
   await course.save();
   await writeAuditLog({
     actorId,
     action: "courses.publish",
     resource: "Course",
     resourceId: id,
+  });
+  return course;
+}
+
+/** Academic / SuperAdmin: send course back to instructor as Draft. */
+export async function requestCourseChanges(
+  id: string,
+  actorId: string,
+  reason?: string,
+) {
+  const course = await Course.findById(id);
+  if (!course) throw new AppError(404, "NOT_FOUND", "Course not found");
+  if (course.status !== "pending_review") {
+    throw new AppError(
+      400,
+      "INVALID_STATUS",
+      "Only courses pending review can receive change requests",
+    );
+  }
+  course.status = "draft";
+  course.rejectionReason = reason?.trim() || undefined;
+  await course.save();
+  await writeAuditLog({
+    actorId,
+    action: "courses.request_changes",
+    resource: "Course",
+    resourceId: id,
+    meta: { reason: course.rejectionReason },
   });
   return course;
 }

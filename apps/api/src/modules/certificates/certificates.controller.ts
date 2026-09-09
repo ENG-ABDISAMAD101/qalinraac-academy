@@ -3,7 +3,7 @@ import { sendSuccess } from "../../lib/api-response.js";
 import * as service from "./certificates.service.js";
 
 export async function request(req: Request, res: Response) {
-  const data = await service.requestCertificate(req.user!.id, req.body.courseId);
+  const data = await service.requestCertificate(req.user!.id, req.body);
   return sendSuccess(res, data, 201);
 }
 

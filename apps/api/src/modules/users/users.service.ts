@@ -11,6 +11,8 @@ export const updateUserSchema = z.object({
   role: AcademyRole.optional(),
   isActive: z.boolean().optional(),
   avatarUrl: z.string().url().optional(),
+  /** Super Admin only — how many courses an instructor may create. */
+  courseLimit: z.number().int().min(0).max(100).optional(),
 });
 
 export async function listUsers(query: z.infer<typeof paginationQuerySchema>) {
@@ -46,6 +48,7 @@ export async function updateUser(
   if (input.fullName !== undefined) user.fullName = input.fullName;
   if (input.isActive !== undefined) user.isActive = input.isActive;
   if (input.avatarUrl !== undefined) user.avatarUrl = input.avatarUrl;
+  if (input.courseLimit !== undefined) user.courseLimit = input.courseLimit;
   if (input.role !== undefined) {
     user.role = input.role;
     user.permissions = [...ROLE_PERMISSIONS[input.role]];
