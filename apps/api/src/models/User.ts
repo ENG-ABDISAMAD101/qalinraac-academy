@@ -15,6 +15,13 @@ export interface IUser extends Document {
   permissions: Permission[];
   isActive: boolean;
   avatarUrl?: string;
+  phone?: string;
+  username?: string;
+  bio?: string;
+  /** Instructors only — Super Admin sets how many courses they may create. Default 1. */
+  courseLimit: number;
+  onboardingCompleted: boolean;
+  onboardingCompletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +35,12 @@ const userSchema = new Schema<IUser>(
     permissions: { type: [String], default: [] },
     isActive: { type: Boolean, default: true },
     avatarUrl: { type: String },
+    phone: { type: String, trim: true },
+    username: { type: String, trim: true, lowercase: true },
+    bio: { type: String, trim: true, maxlength: 500 },
+    courseLimit: { type: Number, default: 1, min: 0 },
+    onboardingCompleted: { type: Boolean, default: false },
+    onboardingCompletedAt: { type: Date },
   },
   { timestamps: true },
 );
@@ -35,6 +48,9 @@ const userSchema = new Schema<IUser>(
 userSchema.pre("save", function () {
   if (this.isModified("role") || this.isNew) {
     this.permissions = [...ROLE_PERMISSIONS[this.role]];
+    if (this.role !== "Instructor" && this.isNew) {
+      this.onboardingCompleted = true;
+    }
   }
 });
 

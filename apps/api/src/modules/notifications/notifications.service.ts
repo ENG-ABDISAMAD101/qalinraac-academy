@@ -36,3 +36,11 @@ export async function markAllRead(userId: string) {
   );
   return { updated: true };
 }
+
+export async function removeNotification(id: string, userId: string) {
+  const result = await Notification.deleteOne({ _id: id, userId });
+  if (result.deletedCount === 0) {
+    throw new AppError(404, "NOT_FOUND", "Notification not found");
+  }
+  return { deleted: true };
+}

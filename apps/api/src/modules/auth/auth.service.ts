@@ -19,6 +19,12 @@ function toPublicUser(user: {
   permissions: string[];
   isActive: boolean;
   avatarUrl?: string;
+  phone?: string;
+  username?: string;
+  bio?: string;
+  courseLimit?: number;
+  onboardingCompleted?: boolean;
+  onboardingCompletedAt?: Date;
   createdAt?: Date;
 }) {
   return {
@@ -29,6 +35,12 @@ function toPublicUser(user: {
     permissions: user.permissions,
     isActive: user.isActive,
     avatarUrl: user.avatarUrl,
+    phone: user.phone,
+    username: user.username,
+    bio: user.bio,
+    courseLimit: user.courseLimit ?? 1,
+    onboardingCompleted: user.onboardingCompleted ?? user.role !== "Instructor",
+    onboardingCompletedAt: user.onboardingCompletedAt,
     createdAt: user.createdAt,
   };
 }
@@ -62,6 +74,7 @@ export async function register(input: RegisterInput, ip?: string) {
     email: input.email.toLowerCase(),
     passwordHash,
     fullName: input.fullName,
+    phone: input.phone,
     role,
     permissions: [...ROLE_PERMISSIONS[role]],
   });

@@ -16,3 +16,8 @@ export async function markAllRead(req: Request, res: Response) {
   const data = await service.markAllRead(req.user!.id);
   return sendSuccess(res, data);
 }
+
+export async function remove(req: Request, res: Response) {
+  const data = await service.removeNotification(req.params.id, req.user!.id);
+  return sendSuccess(res, data);
+}
