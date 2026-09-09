@@ -82,7 +82,7 @@ export default function AcademicInstructorDetailPage() {
           <div className="card-soft space-y-4 p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+                <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
                   {instructor.basic?.fullName ?? "Instructor"}
                 </h1>
                 <p className="mt-1 text-sm text-muted-foreground">

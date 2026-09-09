@@ -1,0 +1,21 @@
+---
+description: Project-wide loading spinner (Uiverse blade spinner)
+alwaysApply: true
+---
+
+# Loading Spinner
+
+Use the shared blade spinner for **all** loading states in the web app.
+
+## Components
+
+- `Spinner` — `@/components/ui/spinner` (inline / centered)
+- `PageLoader` — full-viewport centered loader (portal shells, auth Suspense, route loading)
+
+## Rules
+
+- Do **not** invent new spinners (`animate-spin`, text-only “Loading…”, custom CSS loaders)
+- Prefer `<PageLoader label="…" />` for full-page waits
+- Prefer `<Spinner />` or `<Spinner className="center" />` for inline / overlay waits
+- CSS lives in `globals.css` (`.spinner`, `.spinner-blade`, `@keyframes spinner-fade9234`)
+- Credit: Uiverse.io by mrhyddenn

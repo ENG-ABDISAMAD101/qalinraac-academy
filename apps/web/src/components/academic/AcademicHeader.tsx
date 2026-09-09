@@ -16,10 +16,10 @@ export function AcademicHeader() {
             href="/academic/dashboard"
             className="flex shrink-0 items-center gap-2"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-navy text-sm font-bold lowercase text-brand-lime shadow-sm">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold lowercase text-primary-foreground shadow-sm">
               q
             </span>
-            <span className="hidden font-display text-xl font-bold tracking-tight text-brand-navy dark:text-foreground sm:inline">
+            <span className="hidden font-display text-xl font-bold tracking-tight text-primary dark:text-foreground sm:inline">
               Qalinraac
             </span>
           </Link>

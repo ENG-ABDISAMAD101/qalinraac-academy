@@ -24,7 +24,7 @@ export default function ResearchProjectDetailPage() {
         </Button>
         <div className="card-soft space-y-4 p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <h1 className="font-display text-2xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-2xl font-bold text-primary dark:text-foreground">
               {p.title}
             </h1>
             <span
@@ -69,7 +69,7 @@ export default function ResearchProjectDetailPage() {
             <p className="mb-2 text-sm font-medium">Progress · {p.progress}%</p>
             <div className="h-3 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-brand-lime"
+                className="h-full rounded-full bg-primary"
                 style={{ width: `${p.progress}%` }}
               />
             </div>

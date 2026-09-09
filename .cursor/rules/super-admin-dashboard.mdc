@@ -1,0 +1,27 @@
+---
+description: Super Admin — full platform control center
+alwaysApply: true
+---
+
+# Super Admin Role
+
+Highest-level system administrator: global visibility and exclusive control over users, roles, permissions, system settings, integrations, payments, storage, security, and audit logs.
+
+## Sidebar
+
+Dashboard · Users · Roles & Permissions · Students · Instructors · Academic · Courses · Certificates · Finance · Research · Reports · Notifications · Support · System Settings · Integrations · Storage & Videos · Security · Audit Logs · Profile · Logout
+
+## Dashboard
+
+Platform-wide stats spanning users, academic queues, finance totals, and support. Charts + recent system activity. Super Admin is a control center, not stats-only.
+
+## Exclusive controls
+
+- Create/edit/delete users; assign roles; enable/disable; reset accounts
+- RBAC: roles, module access, action permissions (enforced server-side)
+- System settings, payment APIs, storage/video, email, security, audit logs
+- Override academic/finance/research workflows when authorized
+
+## Role boundary
+
+Public registration → Student only. Instructor = promote Student after agreement. Finance uses payment settings but cannot modify them.

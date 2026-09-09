@@ -75,7 +75,7 @@ export default function AcademicDashboardPage() {
     <AcademicShell>
       <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Academic Work Queue
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -95,7 +95,7 @@ export default function AcademicDashboardPage() {
                   <p className="text-xs font-medium text-muted-foreground">
                     {s.label}
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-brand-navy dark:text-foreground">
+                  <p className="mt-1 text-2xl font-bold text-primary dark:text-foreground">
                     {s.value}
                   </p>
                 </div>
@@ -104,7 +104,7 @@ export default function AcademicDashboardPage() {
 
             <section className="card-soft overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4">
-                <h2 className="text-base font-bold text-brand-navy dark:text-foreground">
+                <h2 className="text-base font-bold text-primary dark:text-foreground">
                   Pending Course Reviews
                 </h2>
                 <Button asChild size="sm" variant="outline">
@@ -173,7 +173,7 @@ export default function AcademicDashboardPage() {
 
             <section className="card-soft overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4">
-                <h2 className="text-base font-bold text-brand-navy dark:text-foreground">
+                <h2 className="text-base font-bold text-primary dark:text-foreground">
                   Pending Student Activations
                 </h2>
                 <Button asChild size="sm" variant="outline">
@@ -242,7 +242,7 @@ export default function AcademicDashboardPage() {
 
             <section className="card-soft overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4">
-                <h2 className="text-base font-bold text-brand-navy dark:text-foreground">
+                <h2 className="text-base font-bold text-primary dark:text-foreground">
                   Pending Certificates
                 </h2>
                 <Button asChild size="sm" variant="outline">

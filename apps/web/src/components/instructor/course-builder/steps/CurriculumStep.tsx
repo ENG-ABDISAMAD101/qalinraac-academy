@@ -249,7 +249,7 @@ export function CurriculumStep({
       <div className="card-soft p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+            <h2 className="text-lg font-bold text-primary dark:text-foreground">
               Curriculum
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">

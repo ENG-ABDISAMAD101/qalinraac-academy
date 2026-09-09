@@ -82,11 +82,11 @@ function downloadPrintablePdf(rows: StudentRow[]) {
     .join("");
   win.document.write(`<!DOCTYPE html><html><head><title>Students Report</title>
     <style>
-      body{font-family:system-ui,sans-serif;padding:24px;color:#1A2332}
-      h1{color:#002B5C;font-size:20px;margin:0 0 16px}
+      body{font-family:system-ui,sans-serif;padding:24px;color:#111827}
+      h1{color:#111827;font-size:20px;margin:0 0 16px}
       table{width:100%;border-collapse:collapse;font-size:12px}
       th,td{border:1px solid #e5e7eb;padding:8px;text-align:left}
-      th{background:#F4F6F9}
+      th{background:#F7F8FA}
     </style></head><body>
     <h1>Students Report</h1>
     <table>
@@ -132,7 +132,7 @@ export default function InstructorStudentsPage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Students
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -202,7 +202,7 @@ export default function InstructorStudentsPage() {
                   <tr key={s.id} className="border-b border-border/70">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted text-brand-navy">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted text-primary">
                           <User className="h-4 w-4" aria-hidden />
                         </span>
                         <Avatar className="h-9 w-9 border border-border">
@@ -224,7 +224,7 @@ export default function InstructorStudentsPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 shrink-0 text-brand-navy dark:text-brand-lime" />
+                        <BookOpen className="h-4 w-4 shrink-0 text-primary" />
                         <span>{s.courseTitle}</span>
                       </div>
                     </td>
@@ -235,7 +235,7 @@ export default function InstructorStudentsPage() {
                       <div className="flex items-center gap-2">
                         <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
                           <div
-                            className="h-full rounded-full bg-brand-lime"
+                            className="h-full rounded-full bg-primary"
                             style={{ width: `${s.progress}%` }}
                           />
                         </div>

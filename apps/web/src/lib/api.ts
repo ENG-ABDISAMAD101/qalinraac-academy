@@ -1714,6 +1714,22 @@ export async function academicSetCourseStatusRequest(
   return data.data;
 }
 
+export async function academicReplyCourseDiscussionRequest(
+  courseId: string,
+  body: string,
+) {
+  const { data } = await api.post<
+    ApiSuccess<{
+      id: string;
+      body: string;
+      createdAt: string;
+      authorName?: string;
+      authorRole?: string;
+    }>
+  >(`/academic/courses/${courseId}/discussions`, { body });
+  return data.data;
+}
+
 export async function academicActivationsRequest(status?: string) {
   const { data } = await api.get<ApiSuccess<Record<string, unknown>[]>>(
     "/academic/activations",
@@ -1864,3 +1880,165 @@ export async function academicUpdateProfileRequest(input: {
   return data.data;
 }
 
+
+// ——— Finance portal ———
+
+export type FinanceDashboardData = {
+  stats: {
+    totalRevenue: number;
+    totalExpenses: number;
+    netProfit: number;
+    pendingWithdrawals: number;
+    totalInstructorPayments: number;
+    activeShareholders: number;
+  };
+  revenueOverview: {
+    today: number;
+    weekly: number;
+    monthly: number;
+    annual: number;
+    courseSales: number;
+    manualIncome: number;
+  };
+  expenseOverview: {
+    today: number;
+    monthly: number;
+    annual: number;
+  };
+  pendingWithdrawals: Array<Record<string, unknown>>;
+  chart: Array<{ label: string; revenue: number; expenses: number }>;
+};
+
+export async function financeDashboardRequest() {
+  const { data } = await api.get<ApiSuccess<FinanceDashboardData>>(
+    "/finance/dashboard",
+  );
+  return data.data;
+}
+
+export async function financeRevenueRequest(opts?: {
+  period?: string;
+  method?: string;
+  q?: string;
+  source?: string;
+}) {
+  const { data } = await api.get<
+    ApiSuccess<{ items: Record<string, unknown>[]; methods: string[]; total: number }>
+  >("/finance/revenue", { params: opts });
+  return data.data;
+}
+
+export async function financeCreateManualIncomeRequest(input: {
+  title: string;
+  description?: string;
+  amountCents: number;
+  paymentMethod: string;
+  incomeDate?: string;
+}) {
+  const { data } = await api.post<ApiSuccess<Record<string, unknown>>>(
+    "/finance/revenue/manual",
+    input,
+  );
+  return data.data;
+}
+
+export async function financeExpensesRequest(opts?: {
+  period?: string;
+  q?: string;
+}) {
+  const { data } = await api.get<
+    ApiSuccess<{ items: Record<string, unknown>[]; total: number }>
+  >("/finance/expenses", { params: opts });
+  return data.data;
+}
+
+export async function financeCreateExpenseRequest(input: {
+  title: string;
+  description?: string;
+  amountCents: number;
+  category?: string;
+  expenseDate?: string;
+}) {
+  const { data } = await api.post<ApiSuccess<Record<string, unknown>>>(
+    "/finance/expenses",
+    input,
+  );
+  return data.data;
+}
+
+export async function financeInstructorPaymentsRequest(q?: string) {
+  const { data } = await api.get<
+    ApiSuccess<{
+      items: Record<string, unknown>[];
+      sharePercent: number;
+      total: number;
+    }>
+  >("/finance/instructor-payments", { params: q ? { q } : undefined });
+  return data.data;
+}
+
+export async function financeWithdrawalsRequest(opts?: {
+  status?: string;
+  q?: string;
+}) {
+  const { data } = await api.get<
+    ApiSuccess<{
+      items: Record<string, unknown>[];
+      total: number;
+      stats: { pending: number; completed: number };
+    }>
+  >("/finance/withdrawals", { params: opts });
+  return data.data;
+}
+
+export async function financeWithdrawalRequest(id: string) {
+  const { data } = await api.get<ApiSuccess<Record<string, unknown>>>(
+    `/finance/withdrawals/${id}`,
+  );
+  return data.data;
+}
+
+export async function financeCompleteWithdrawalRequest(id: string) {
+  const { data } = await api.post<ApiSuccess<Record<string, unknown>>>(
+    `/finance/withdrawals/${id}/complete`,
+  );
+  return data.data;
+}
+
+export async function financeRejectWithdrawalRequest(
+  id: string,
+  reason: string,
+) {
+  const { data } = await api.post<ApiSuccess<Record<string, unknown>>>(
+    `/finance/withdrawals/${id}/reject`,
+    { reason },
+  );
+  return data.data;
+}
+
+export async function financeShareholdersRequest(q?: string) {
+  const { data } = await api.get<
+    ApiSuccess<{ items: Record<string, unknown>[]; total: number }>
+  >("/finance/shareholders", { params: q ? { q } : undefined });
+  return data.data;
+}
+
+export async function financeReportsRequest() {
+  const { data } = await api.get<ApiSuccess<Record<string, unknown>>>(
+    "/finance/reports",
+  );
+  return data.data;
+}
+
+export async function financeUpdateProfileRequest(input: {
+  fullName?: string;
+  phone?: string;
+  bio?: string;
+  avatarUrl?: string;
+}) {
+  const { data } = await api.patch<ApiSuccess<AuthUser>>(
+    "/finance/profile",
+    input,
+  );
+  return data.data;
+}

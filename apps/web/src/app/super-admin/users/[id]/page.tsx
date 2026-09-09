@@ -27,7 +27,7 @@ export default function SuperAdminUserDetailPage() {
         <div className="card-soft space-y-4 p-6">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="font-display text-2xl font-bold text-brand-navy dark:text-foreground">
+              <h1 className="font-display text-2xl font-bold text-primary dark:text-foreground">
                 {base.name}
               </h1>
               <p className="text-sm text-muted-foreground">{base.email}</p>
@@ -82,7 +82,7 @@ export default function SuperAdminUserDetailPage() {
             </Button>
           </div>
           {flash ? (
-            <p className="text-sm text-brand-navy dark:text-brand-lime">{flash}</p>
+            <p className="text-sm text-primary">{flash}</p>
           ) : null}
         </div>
       </div>

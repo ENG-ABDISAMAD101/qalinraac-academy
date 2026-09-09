@@ -77,7 +77,7 @@ export function CourseCurriculumPanel({
   if (curriculum.length === 0) {
     return (
       <div className={cn("space-y-2", className)}>
-        <h2 className="text-sm font-bold text-brand-navy dark:text-foreground">
+        <h2 className="text-sm font-bold text-primary dark:text-foreground">
           Curriculum
         </h2>
         <p className="text-sm text-muted-foreground">No modules yet.</p>
@@ -89,7 +89,7 @@ export function CourseCurriculumPanel({
     <div className={cn("space-y-3", className)}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-sm font-bold text-brand-navy dark:text-foreground">
+          <h2 className="text-sm font-bold text-primary dark:text-foreground">
             Curriculum
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -104,7 +104,7 @@ export function CourseCurriculumPanel({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 px-2 text-xs font-semibold text-brand-navy dark:text-brand-lime"
+          className="h-8 px-2 text-xs font-semibold text-primary"
           onClick={() => setOpen(allExpanded ? [] : allIds)}
         >
           {allExpanded ? "Collapse all" : "Expand all"}
@@ -154,7 +154,7 @@ export function CourseCurriculumPanel({
                   </span>
                 </span>
                 <span
-                  className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/80 text-brand-navy dark:text-brand-lime"
+                  className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/80 text-primary"
                   aria-hidden
                 >
                   <Plus className="h-4 w-4 transition-opacity group-data-[state=open]:opacity-0" />
@@ -193,7 +193,7 @@ export function CourseCurriculumPanel({
                               className={cn(
                                 "h-4 w-4 shrink-0",
                                 hasVideo
-                                  ? "text-brand-navy dark:text-brand-lime"
+                                  ? "text-primary"
                                   : "text-muted-foreground",
                               )}
                             />
@@ -204,12 +204,12 @@ export function CourseCurriculumPanel({
                               {lesson.title}
                             </span>
                             {lesson.isPreview ? (
-                              <span className="shrink-0 rounded-full bg-brand-lime-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-navy">
+                              <span className="shrink-0 rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
                                 Preview
                               </span>
                             ) : null}
                             {hasVideo ? (
-                              <span className="shrink-0 text-xs font-semibold text-brand-navy dark:text-brand-lime">
+                              <span className="shrink-0 text-xs font-semibold text-primary">
                                 Watch
                               </span>
                             ) : null}

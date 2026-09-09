@@ -65,7 +65,7 @@ export default function AcademicReportsPage() {
     <AcademicShell>
       <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Academic Reports
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">

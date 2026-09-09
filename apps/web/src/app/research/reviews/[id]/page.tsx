@@ -47,7 +47,7 @@ export default function ResearchReviewDetailPage() {
         </Button>
         <div className="card-soft space-y-4 p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <h1 className="font-display text-2xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-2xl font-bold text-primary dark:text-foreground">
               {item.paper}
             </h1>
             <span
@@ -106,7 +106,7 @@ export default function ResearchReviewDetailPage() {
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
-                className="bg-brand-lime text-brand-navy hover:bg-brand-lime/90"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
                 disabled={isAuthor}
                 onClick={() => decide("Approve")}
               >
@@ -134,7 +134,7 @@ export default function ResearchReviewDetailPage() {
             </div>
           </form>
           {result ? (
-            <p className="text-sm font-medium text-brand-navy dark:text-brand-lime">
+            <p className="text-sm font-medium text-primary">
               {result}
             </p>
           ) : null}

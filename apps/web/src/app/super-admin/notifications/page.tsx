@@ -34,7 +34,7 @@ export default function SuperAdminNotificationsPage() {
     <SuperAdminShell>
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Notifications
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -55,7 +55,7 @@ export default function SuperAdminNotificationsPage() {
           </label>
           <Button type="submit">Send announcement</Button>
           {flash ? (
-            <p className="text-sm text-brand-navy dark:text-brand-lime">{flash}</p>
+            <p className="text-sm text-primary">{flash}</p>
           ) : null}
         </form>
 
@@ -84,7 +84,7 @@ export default function SuperAdminNotificationsPage() {
                 key={n.id}
                 className={cn(
                   "card-soft flex flex-wrap items-start justify-between gap-4 p-5",
-                  !n.read && "ring-1 ring-brand-lime/40",
+                  !n.read && "ring-1 ring-primary/40",
                 )}
               >
                 <div className="flex gap-3">

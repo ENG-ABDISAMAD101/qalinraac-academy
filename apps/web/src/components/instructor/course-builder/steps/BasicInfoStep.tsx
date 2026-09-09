@@ -18,7 +18,7 @@ export function BasicInfoStep({ draft, setDraft, readOnly }: StepProps) {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="card-soft space-y-5 p-5 sm:p-6">
         <div>
-          <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+          <h2 className="text-lg font-bold text-primary dark:text-foreground">
             Basic Information
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">

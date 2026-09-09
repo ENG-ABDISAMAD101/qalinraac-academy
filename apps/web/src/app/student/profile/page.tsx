@@ -129,7 +129,7 @@ export default function ProfilePage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Profile Settings
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -158,7 +158,7 @@ export default function ProfilePage() {
         </div>
 
         {message ? (
-          <p className="rounded-2xl border border-brand-lime/40 bg-brand-lime-soft/50 px-4 py-3 text-sm font-medium text-brand-navy">
+          <p className="rounded-2xl border border-primary/40 bg-primary-soft/50 px-4 py-3 text-sm font-medium text-primary">
             {message}
           </p>
         ) : null}
@@ -181,7 +181,7 @@ export default function ProfilePage() {
             <div className="relative">
               <Avatar className="h-28 w-28 border-4 border-white shadow-md ring-1 ring-border">
                 <AvatarImage src={avatarSrc} alt={displayName} />
-                <AvatarFallback className="text-2xl font-bold text-brand-navy">
+                <AvatarFallback className="text-2xl font-bold text-primary">
                   {initialsFromName(displayName)}
                 </AvatarFallback>
               </Avatar>
@@ -191,7 +191,7 @@ export default function ProfilePage() {
                     type="button"
                     disabled={uploading}
                     onClick={() => fileRef.current?.click()}
-                    className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-full bg-brand-navy text-white shadow-lg transition hover:bg-brand-navy/90"
+                    className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:bg-primary/90"
                     aria-label="Change photo"
                   >
                     {uploading ? (
@@ -216,13 +216,13 @@ export default function ProfilePage() {
                 type="button"
                 disabled={uploading}
                 onClick={() => fileRef.current?.click()}
-                className="mt-4 text-xs font-semibold text-brand-navy underline-offset-4 hover:underline dark:text-brand-lime"
+                className="mt-4 text-xs font-semibold text-primary underline-offset-4 hover:underline dark:text-primary"
               >
                 Change Photo
               </button>
             ) : null}
 
-            <h2 className="mt-5 font-display text-xl font-bold text-brand-navy dark:text-foreground">
+            <h2 className="mt-5 font-display text-xl font-bold text-primary dark:text-foreground">
               {editing
                 ? [form.firstName, form.lastName].filter(Boolean).join(" ") ||
                   displayName
@@ -262,7 +262,7 @@ export default function ProfilePage() {
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Account status
                 </p>
-                <p className="mt-0.5 font-semibold text-brand-navy dark:text-brand-lime">
+                <p className="mt-0.5 font-semibold text-primary">
                   {user?.isActive === false ? "Inactive" : "Active"}
                 </p>
               </div>
@@ -274,7 +274,7 @@ export default function ProfilePage() {
             {!editing ? (
               <div className="space-y-8">
                 <div>
-                  <h3 className="text-base font-bold text-brand-navy dark:text-foreground">
+                  <h3 className="text-base font-bold text-primary dark:text-foreground">
                     Personal information
                   </h3>
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -310,7 +310,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-brand-navy dark:text-foreground">
+                  <h3 className="text-base font-bold text-primary dark:text-foreground">
                     Bio
                   </h3>
                   <p className="mt-3 rounded-2xl border border-border/70 px-4 py-4 text-sm leading-relaxed text-muted-foreground">
@@ -325,7 +325,7 @@ export default function ProfilePage() {
             ) : (
               <div className="space-y-8">
                 <div>
-                  <h3 className="text-base font-bold text-brand-navy dark:text-foreground">
+                  <h3 className="text-base font-bold text-primary dark:text-foreground">
                     Edit profile
                   </h3>
                   <p className="mt-1 text-sm text-muted-foreground">

@@ -8,6 +8,7 @@ import {
   academicStatusTone,
 } from "@/components/academic/AcademicShell";
 import { Button } from "@/components/ui/button";
+import { FormActions, FormCard, formSelectClassName } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   ScrollTable,
@@ -201,7 +202,7 @@ export default function AcademicActivationsPage() {
     <AcademicShell>
       <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Student Activations
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -210,9 +211,13 @@ export default function AcademicActivationsPage() {
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="card-soft max-w-2xl space-y-4 p-6">
-          <h2 className="text-lg font-bold">New activation request</h2>
-          <label className="block text-sm font-medium">
+        <form onSubmit={onSubmit} className="max-w-xl">
+          <FormCard
+            title="New activation request"
+            description="Search an existing student, choose a course, then submit."
+            className="space-y-5"
+          >
+          <label className="block text-sm font-semibold">
             Search existing student
             <Input
               value={studentQuery}
@@ -221,11 +226,11 @@ export default function AcademicActivationsPage() {
                 setStudentId("");
               }}
               placeholder="Type at least 2 characters…"
-              className="mt-2 h-11"
+              className="mt-2"
             />
           </label>
           {studentHits.length > 0 ? (
-            <ul className="max-h-40 overflow-y-auto rounded-2xl border border-border">
+            <ul className="max-h-40 overflow-y-auto rounded-xl border border-border">
               {studentHits.map((s) => (
                 <li key={s.id}>
                   <button
@@ -237,7 +242,7 @@ export default function AcademicActivationsPage() {
                     }}
                     className={cn(
                       "w-full px-4 py-2.5 text-left text-sm hover:bg-accent",
-                      studentId === s.id && "bg-brand-lime-soft/50",
+                      studentId === s.id && "bg-primary-soft/50",
                     )}
                   >
                     <span className="font-semibold">{s.name}</span>
@@ -252,7 +257,7 @@ export default function AcademicActivationsPage() {
               Selected student ID: {studentId}
             </p>
           ) : null}
-          <label className="block text-sm font-medium">
+          <label className="block text-sm font-semibold">
             Select published course
             <select
               value={courseId}
@@ -262,7 +267,7 @@ export default function AcademicActivationsPage() {
                 const course = publishedCourses.find((c) => c.id === next);
                 if (course) setPrice((course.priceCents / 100).toFixed(2));
               }}
-              className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3"
+              className={cn(formSelectClassName, "mt-2")}
             >
               {publishedCourses.length === 0 ? (
                 <option value="">No published courses</option>
@@ -275,31 +280,38 @@ export default function AcademicActivationsPage() {
               )}
             </select>
           </label>
-          <label className="block text-sm font-medium">
+          <label className="block text-sm font-semibold">
             Set price (USD)
-            <input
+            <Input
               type="number"
               min={0}
               step="0.01"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3"
+              className="mt-2"
             />
           </label>
-          <Button type="submit" disabled={submitting}>
-            {submitting ? (
-              <Spinner className="sm on-primary" label="Submitting" />
-            ) : null}
-            Submit Activation Request
-          </Button>
           {formError ? (
             <p className="text-sm text-destructive">{formError}</p>
           ) : null}
           {formMessage ? (
-            <p className="text-sm text-brand-navy dark:text-brand-lime">
+            <p className="text-sm text-primary">
               {formMessage}
             </p>
           ) : null}
+          <FormActions
+            helpHref="/academic/notifications"
+            confirmLabel="Submit"
+            confirmLoading={submitting}
+            onCancel={() => {
+              setStudentQuery("");
+              setStudentId("");
+              setStudentHits([]);
+              setFormError("");
+              setFormMessage("");
+            }}
+          />
+          </FormCard>
         </form>
 
         <div className="space-y-4">
@@ -322,7 +334,7 @@ export default function AcademicActivationsPage() {
                   className={cn(
                     "rounded-full px-3.5 py-2 text-xs font-semibold transition",
                     statusFilter === f.value
-                      ? "bg-brand-navy text-white dark:bg-brand-lime dark:text-brand-navy"
+                      ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -347,7 +359,7 @@ export default function AcademicActivationsPage() {
               minWidthClassName="min-w-[58rem]"
               toolbar={
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-brand-navy dark:text-foreground">
+                  <p className="text-sm font-semibold text-primary dark:text-foreground">
                     Activation report
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -403,7 +415,7 @@ export default function AcademicActivationsPage() {
                           <div className="flex min-w-[5.5rem] items-center gap-2">
                             <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
                               <div
-                                className="h-full rounded-full bg-brand-lime"
+                                className="h-full rounded-full bg-primary"
                                 style={{ width: `${progress}%` }}
                               />
                             </div>

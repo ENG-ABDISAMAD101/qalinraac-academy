@@ -75,10 +75,10 @@ function formatStatus(status: string) {
 function statusTone(status: string) {
   const label = formatStatus(status);
   if (label === "Ready" || label === "Approved") {
-    return "bg-brand-lime-soft text-brand-navy";
+    return "bg-primary-soft text-primary";
   }
   if (label === "Rejected") return "bg-destructive/10 text-destructive";
-  return "bg-canvas text-brand-navy dark:bg-muted dark:text-foreground";
+  return "bg-canvas text-primary dark:bg-muted dark:text-foreground";
 }
 
 function canDownload(status: string) {
@@ -168,7 +168,7 @@ export default function CertificatesPage() {
       <div className="space-y-6 px-6 py-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Certificates
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -178,7 +178,7 @@ export default function CertificatesPage() {
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button type="button" className="bg-brand-lime text-brand-navy hover:opacity-90">
+              <Button type="button" className="bg-primary text-primary-foreground hover:opacity-90">
                 Request Certificate
               </Button>
             </DialogTrigger>
@@ -235,7 +235,7 @@ export default function CertificatesPage() {
                   <p className="text-sm text-destructive">{formError}</p>
                 ) : null}
                 {formSuccess ? (
-                  <p className="text-sm font-medium text-brand-navy dark:text-brand-lime">
+                  <p className="text-sm font-medium text-primary">
                     {formSuccess}
                   </p>
                 ) : null}
@@ -259,7 +259,7 @@ export default function CertificatesPage() {
           </p>
         ) : certs.length === 0 ? (
           <div className="card-soft px-6 py-14 text-center">
-            <h2 className="font-display text-xl font-bold text-brand-navy dark:text-foreground">
+            <h2 className="font-display text-xl font-bold text-primary dark:text-foreground">
               No certificates yet
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">

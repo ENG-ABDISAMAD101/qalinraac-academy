@@ -1,0 +1,27 @@
+---
+description: Research role — projects, papers, reviews, publications
+alwaysApply: true
+---
+
+# Research Role
+
+Independent research operations only: projects, papers, submissions, reviews, publications, resources, reports. No academic course ops, finance, admin, or system settings.
+
+## Sidebar
+
+Dashboard · Research Projects · Research Papers · Researchers · Submissions · Reviews · Publications · Research Resources · Reports · Notifications · Profile · Logout
+
+## Dashboard
+
+Work Center stats: Researchers, Active Projects, Draft / Submitted / Under Review / Approved / Published papers.
+Queues: Pending Reviews, Active Projects, Recent Submissions.
+
+## Workflow
+
+`Project → Paper → Submit → Review → Revision → Approve → Publish`
+
+Researchers cannot approve their own papers. Ownership + RBAC enforced server-side.
+
+## Never manages
+
+Students, Instructors, Courses, Finance, Withdrawals, Roles, Permissions, System Settings, APIs, Email, Storage.

@@ -9,11 +9,19 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
+  DialogFormActions,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  FileDropzone,
+  FormOrDivider,
+  UrlImportField,
+} from "@/components/ui/file-dropzone";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import {
   academicAgreementsRequest,
   academicCreateAgreementRequest,
@@ -62,6 +70,9 @@ export default function AcademicAgreementsPage() {
   const [version, setVersion] = useState("1.0");
   const [effectiveDate, setEffectiveDate] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [fileUrlFromUrl, setFileUrlFromUrl] = useState("");
+  const [urlDraft, setUrlDraft] = useState("");
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -85,14 +96,21 @@ export default function AcademicAgreementsPage() {
     void load();
   }, [load]);
 
-  function openCreate() {
-    setEditing(null);
+  function resetFormState() {
     setTitle("");
     setDescription("");
     setVersion("1.0");
     setEffectiveDate("");
     setFile(null);
+    setFileUrlFromUrl("");
+    setUrlDraft("");
+    setUploadProgress(null);
     setFormError("");
+  }
+
+  function openCreate() {
+    setEditing(null);
+    resetFormState();
     setDialogOpen(true);
   }
 
@@ -107,15 +125,32 @@ export default function AcademicAgreementsPage() {
         : "",
     );
     setFile(null);
+    setFileUrlFromUrl("");
+    setUrlDraft("");
+    setUploadProgress(null);
     setFormError("");
     setDialogOpen(true);
+  }
+
+  function onUrlUpload() {
+    const next = urlDraft.trim();
+    if (!next) return;
+    try {
+      new URL(next);
+      setFileUrlFromUrl(next);
+      setFile(null);
+      setUploadProgress(100);
+      setFormError("");
+    } catch {
+      setFormError("Enter a valid file URL.");
+    }
   }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setFormError("");
-    if (!editing && !file) {
-      setFormError("Select a PDF file to upload.");
+    if (!editing && !file && !fileUrlFromUrl) {
+      setFormError("Select a PDF file or import from URL.");
       return;
     }
     if (!description.trim()) {
@@ -124,13 +159,26 @@ export default function AcademicAgreementsPage() {
     }
     setSaving(true);
     try {
-      let fileUrl = editing?.fileUrl;
+      let fileUrl = fileUrlFromUrl || editing?.fileUrl;
       let fileName: string | undefined;
       if (file) {
-        const uploaded = await uploadFileRequest(file);
-        if (!uploaded.url) throw new Error("Upload returned no URL");
-        fileUrl = uploaded.url;
-        fileName = uploaded.originalName || file.name;
+        setUploadProgress(12);
+        const tick = window.setInterval(() => {
+          setUploadProgress((p) =>
+            p == null || p >= 90 ? p : Math.min(90, p + 8),
+          );
+        }, 120);
+        try {
+          const uploaded = await uploadFileRequest(file);
+          if (!uploaded.url) throw new Error("Upload returned no URL");
+          fileUrl = uploaded.url;
+          fileName = uploaded.originalName || file.name;
+          setUploadProgress(100);
+        } finally {
+          window.clearInterval(tick);
+        }
+      } else if (fileUrlFromUrl) {
+        fileName = fileUrlFromUrl.split("/").pop() || "agreement.pdf";
       }
       if (!fileUrl) {
         setFormError("A PDF file is required.");
@@ -162,6 +210,7 @@ export default function AcademicAgreementsPage() {
       await load();
     } catch (err) {
       setFormError(getApiErrorMessage(err, "Could not save agreement."));
+      setUploadProgress(null);
     } finally {
       setSaving(false);
     }
@@ -172,7 +221,7 @@ export default function AcademicAgreementsPage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Instructor Agreements
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -275,83 +324,109 @@ export default function AcademicAgreementsPage() {
         </div>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) resetFormState();
+        }}
+      >
+        <DialogContent className="max-w-[480px] gap-5">
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Edit agreement" : "Create agreement"}
+              {editing ? "Update agreement" : "Add new agreement"}
             </DialogTitle>
             <DialogDescription>
               Instructors can only view and download this agreement.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <label className="block text-sm font-medium">
-              Title
-              <input
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-border px-4 py-3"
-              />
-            </label>
-            <label className="block text-sm font-medium">
-              Description
-              <textarea
-                required
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-border px-4 py-3"
-              />
-            </label>
+
+          <form onSubmit={onSubmit} className="space-y-5">
+            <FileDropzone
+              id="agreement-pdf"
+              accept=".pdf,application/pdf"
+              formatsLabel="PDF"
+              disabled={saving}
+              file={file}
+              progress={file ? uploadProgress : null}
+              onFileChange={(next) => {
+                setFile(next);
+                setFileUrlFromUrl("");
+                setUploadProgress(next ? 0 : null);
+                setFormError("");
+              }}
+            />
+
+            <FormOrDivider />
+
+            <UrlImportField
+              value={urlDraft}
+              onChange={setUrlDraft}
+              onUpload={onUrlUpload}
+              disabled={saving}
+              placeholder="Add PDF file URL"
+            />
+            {fileUrlFromUrl ? (
+              <p className="truncate text-xs text-muted-foreground">
+                Using URL: {fileUrlFromUrl}
+              </p>
+            ) : null}
+
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm font-medium">
-                Version
-                <input
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="agreement-title">Title</Label>
+                <Input
+                  id="agreement-title"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="rounded-xl"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="agreement-desc">Description</Label>
+                <Textarea
+                  id="agreement-desc"
+                  required
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="agreement-version">Version</Label>
+                <Input
+                  id="agreement-version"
                   required
                   value={version}
                   onChange={(e) => setVersion(e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-border px-4 py-3"
+                  className="rounded-xl"
                 />
-              </label>
-              <label className="block text-sm font-medium">
-                Effective date
-                <input
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="agreement-date">Effective date</Label>
+                <Input
+                  id="agreement-date"
                   type="date"
                   value={effectiveDate}
                   onChange={(e) => setEffectiveDate(e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-border px-4 py-3"
+                  className="rounded-xl"
                 />
-              </label>
+              </div>
             </div>
-            <label className="block text-sm font-medium">
-              PDF file {editing ? "(optional to replace)" : ""}
-              <input
-                type="file"
-                accept=".pdf,application/pdf"
-                className="mt-2 block w-full text-sm"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              />
-            </label>
+
             {formError ? (
               <p className="text-sm text-destructive">{formError}</p>
             ) : null}
-            <DialogFooter className="gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? (
-                  <Spinner className="sm on-primary" label="Saving" />
-                ) : null}
-                {editing ? "Save changes" : "Create"}
-              </Button>
-            </DialogFooter>
+
+            <DialogFormActions
+              helpHref="/academic/notifications"
+              cancelLabel="Cancel"
+              confirmLabel={editing ? "Save changes" : "Import"}
+              confirmLoading={saving}
+              onCancel={() => setDialogOpen(false)}
+            />
           </form>
         </DialogContent>
       </Dialog>

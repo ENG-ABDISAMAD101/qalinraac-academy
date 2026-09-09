@@ -1,0 +1,24 @@
+---
+description: Academic role portal — reviews, activations, certificates, agreements
+alwaysApply: true
+---
+
+# Academic Role
+
+Owns academic ops only: students, instructors, courses, activations, certificates, agreements, reports. No research, finance, payments, or system/settings/roles.
+
+## Sidebar
+
+Dashboard · Students · Instructors · Courses · Student Activations · Certificates · Instructor Agreements · Reports · Notifications · Profile · Logout
+
+## Dashboard work queue
+
+Stats: Total Students, Total Instructors, Active Courses, Pending Course Reviews, Pending Student Activations, Pending Certificates.
+Tables: Pending Course Reviews (Review), Pending Activations (View), Pending Certificates (Review). No research stats / no notification card.
+
+## Key flows
+
+- **Activation**: Academic submits for existing student → Super Admin final approval → Active
+- **Course**: Pending Review → Approve / Reject (+reason) / Request Revision
+- **Certificates**: Pending Review → verify completion → Approve / Reject
+- **Agreements**: Academic upload/assign/version; instructor view/download only

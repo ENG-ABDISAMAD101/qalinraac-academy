@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 /** Placeholder until Forgot Password API is wired. */
 export default function ForgotPasswordPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white px-4">
-      <div className="w-full max-w-md rounded-[1.75rem] border border-border/80 p-8 text-center shadow-[0_20px_50px_-30px_rgba(0,43,92,0.35)]">
-        <h1 className="font-display text-2xl font-bold text-brand-navy">
+    <main className="flex min-h-screen items-center justify-center bg-canvas px-4">
+      <div className="w-full max-w-md rounded-[1.75rem] border border-border/80 p-8 text-center shadow-[0_20px_50px_-30px_rgba(28,30,33,0.35)]">
+        <h1 className="font-display text-2xl font-bold text-primary">
           Forgot password
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">

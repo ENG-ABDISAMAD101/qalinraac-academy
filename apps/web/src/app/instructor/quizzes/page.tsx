@@ -15,10 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { formSelectClassName } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import {
   getApiErrorMessage,
   instructorCourseLessonsRequest,
@@ -28,7 +30,6 @@ import {
   instructorQuizzesRequest,
   type InstructorCourse,
 } from "@/lib/api";
-import { cn } from "@/lib/utils";
 
 type QuizItem = Awaited<
   ReturnType<typeof instructorQuizzesRequest>
@@ -218,7 +219,7 @@ export default function InstructorQuizzesPage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Quizzes
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -333,7 +334,7 @@ export default function InstructorQuizzesPage() {
                       id="q-course"
                       value={courseId}
                       onChange={(e) => setCourseId(e.target.value)}
-                      className="h-11 w-full rounded-2xl border border-border bg-background px-4 text-sm"
+                      className={formSelectClassName}
                       required
                     >
                       <option value="">Select course</option>
@@ -350,7 +351,7 @@ export default function InstructorQuizzesPage() {
                       id="q-lesson"
                       value={lessonId}
                       onChange={(e) => setLessonId(e.target.value)}
-                      className="h-11 w-full rounded-2xl border border-border bg-background px-4 text-sm"
+                      className={formSelectClassName}
                       disabled={!courseId}
                     >
                       <option value="">None</option>
@@ -382,7 +383,7 @@ export default function InstructorQuizzesPage() {
                     className="rounded-2xl border border-border/70 p-4 space-y-3"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-bold text-brand-navy dark:text-foreground">
+                      <p className="text-sm font-bold text-primary dark:text-foreground">
                         Question {qi + 1}
                       </p>
                       {questions.length > 1 ? (
@@ -477,6 +478,7 @@ export default function InstructorQuizzesPage() {
                 <Button
                   type="button"
                   variant="outline"
+                  className="h-10 rounded-xl px-5"
                   onClick={() => setStep(0)}
                 >
                   Back
@@ -485,6 +487,7 @@ export default function InstructorQuizzesPage() {
               {step === 0 ? (
                 <Button
                   type="button"
+                  className="h-10 rounded-xl px-5"
                   onClick={() => {
                     if (!title.trim() || !courseId) {
                       setFormError("Title and course are required.");
@@ -497,7 +500,11 @@ export default function InstructorQuizzesPage() {
                   Next
                 </Button>
               ) : (
-                <Button type="submit" disabled={creating}>
+                <Button
+                  type="submit"
+                  disabled={creating}
+                  className="h-10 rounded-xl px-5"
+                >
                   {creating ? (
                     <Spinner className="sm on-primary" label="Creating" />
                   ) : null}

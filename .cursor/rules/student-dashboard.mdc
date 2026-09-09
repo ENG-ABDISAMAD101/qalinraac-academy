@@ -1,0 +1,31 @@
+---
+description: Student dashboard features, navigation, and workflows
+alwaysApply: true
+---
+
+# Student Dashboard
+
+Auth: only authenticated students. Brand: Primary Text `#111827` + palette surfaces (canvas `#F7F8FA`, cards `#FFFFFF`).
+Sticky header (shadcn): logo + search | theme toggle + notifications dialog + profile dropdown.
+No mentor section, Follow buttons, Recent Certificates, or See All / View All on dashboard.
+
+## Sidebar nav (order)
+
+Dashboard · My Courses · Feedback & Discussions · Resources · Certificates · Orders · Technical Support · Notifications · Profile · Logout
+
+## Pages
+
+1. **Dashboard** — cards (active/completed courses, certificates, quiz avg); Welcome; Continue Learning; Learning Progress; Learning Streak; Upcoming Quizzes; Recent Notifications; Recent Certificates
+2. **My Courses** — search, cards (thumbnail, title, instructor, progress, Continue → Learning Page)
+3. **Learning Page** — from Dashboard/My Courses only; header (back, notifications, theme, mark complete); left curriculum; center video + tabs (Description / Quiz / Assignment)
+4. **Feedback & Discussions** — assignment feedback thread; statuses: Submitted, Reviewed, Passed, Failed
+5. **Resources** — search/download PDF, DOCX, PPTX, XLSX, ZIP
+6. **Certificates** — request, status (Pending/Approved/Ready/Rejected), download, verify
+7. **Orders** — invoices, payment method, transaction id, status
+8. **Technical Support** — tickets Open/Pending/Replied/Closed; image upload
+9. **Notifications** — mark read/delete; types: course, assignment, quiz, cert, payment, announcements
+10. **Profile** — edit avatar, name, phone, bio; email/reg date/status read-only; password via Forgot Password only
+
+## Workflow
+
+Register → Login → Dashboard → Purchase → Activated → Continue Learning → Watch → Quiz/Assignment → Mark Complete → … → Request Certificate → Download

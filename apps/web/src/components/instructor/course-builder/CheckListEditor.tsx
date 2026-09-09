@@ -50,7 +50,7 @@ export function CheckListEditor({
   return (
     <div className="card-soft space-y-4 p-5 sm:p-6">
       <div>
-        <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+        <h2 className="text-lg font-bold text-primary dark:text-foreground">
           {title}
           {optional ? (
             <span className="ml-2 text-sm font-normal text-muted-foreground">
@@ -102,7 +102,7 @@ export function CheckListEditor({
                 "flex items-start gap-3 rounded-2xl border border-border/60 bg-background px-4 py-3 text-sm",
               )}
             >
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-lime" />
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <span className="min-w-0 flex-1 break-words text-foreground">
                 {item}
               </span>

@@ -57,7 +57,7 @@ function HeaderStatusText({
   }
   if (status === "published" && !readOnly) {
     return (
-      <span className="text-xs font-medium text-brand-navy dark:text-brand-lime">
+      <span className="text-xs font-medium text-primary">
         Published · updates re-enter review
       </span>
     );
@@ -80,7 +80,7 @@ function HeaderStatusText({
   }
   if (readyToPublish && !readOnly) {
     return (
-      <span className="flex items-center gap-1.5 text-xs font-semibold text-brand-navy dark:text-brand-lime">
+      <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
         <CheckCircle2 className="h-3.5 w-3.5" />
         Ready to publish
       </span>
@@ -269,7 +269,7 @@ export function CourseBuilderShell({
                 </Link>
               </Button>
               <div className="mt-1 flex flex-wrap items-center gap-2">
-                <h1 className="truncate font-display text-xl font-bold text-brand-navy dark:text-foreground sm:text-2xl">
+                <h1 className="truncate font-display text-xl font-bold text-primary dark:text-foreground sm:text-2xl">
                   {courseTitle || "Untitled Course"}
                 </h1>
                 <span
@@ -338,7 +338,7 @@ export function CourseBuilderShell({
                   className={cn(
                     "flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
                     active
-                      ? "bg-brand-navy text-white dark:bg-brand-lime dark:text-brand-navy"
+                      ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
@@ -346,9 +346,9 @@ export function CourseBuilderShell({
                     className={cn(
                       "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold",
                       active
-                        ? "bg-white/20 text-white dark:bg-brand-navy/15 dark:text-brand-navy"
+                        ? "bg-primary-foreground/20 text-primary-foreground dark:bg-primary/15 dark:text-primary"
                         : done
-                          ? "bg-brand-lime text-brand-navy"
+                          ? "bg-primary text-primary-foreground"
                           : "bg-muted text-muted-foreground",
                     )}
                   >
@@ -381,7 +381,7 @@ export function CourseBuilderShell({
           </p>
         ) : null}
         {actionMessage ? (
-          <p className="mb-5 rounded-2xl bg-brand-lime-soft px-4 py-3 text-sm font-medium text-brand-navy">
+          <p className="mb-5 rounded-2xl bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
             {actionMessage}
           </p>
         ) : null}
@@ -452,8 +452,8 @@ export function CourseBuilderShell({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex gap-3 rounded-2xl border border-brand-navy/15 bg-brand-navy/5 px-4 py-3 text-sm text-foreground dark:border-brand-lime/20 dark:bg-brand-lime/10">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand-navy dark:text-brand-lime" />
+          <div className="flex gap-3 rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm text-foreground dark:border-primary/20 dark:bg-primary/10">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <p>
               You’re about to submit this course for Academic review. Make sure
               you have finished adding all the videos, lessons, assignments,
@@ -523,7 +523,7 @@ export function CourseBuilderShell({
           {!progressDone && !progressError ? (
             <div className="space-y-3 py-2">
               <Progress value={progress} className="h-2.5" />
-              <p className="text-center text-sm font-semibold tabular-nums text-brand-navy dark:text-brand-lime">
+              <p className="text-center text-sm font-semibold tabular-nums text-primary">
                 {Math.round(progress)}%
               </p>
               {!submitting ? (

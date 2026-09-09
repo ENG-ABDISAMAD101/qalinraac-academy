@@ -45,7 +45,7 @@ export default function ResearchDashboardPage() {
     <ResearchShell>
       <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Research Work Center
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -60,7 +60,7 @@ export default function ResearchDashboardPage() {
               <p className="text-xs font-medium text-muted-foreground">
                 {s.label}
               </p>
-              <p className="mt-1 text-2xl font-bold text-brand-navy dark:text-foreground">
+              <p className="mt-1 text-2xl font-bold text-primary dark:text-foreground">
                 {s.value}
               </p>
             </div>
@@ -160,7 +160,7 @@ export default function ResearchDashboardPage() {
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
                       <div
-                        className="h-full rounded-full bg-brand-lime"
+                        className="h-full rounded-full bg-primary"
                         style={{ width: `${p.progress}%` }}
                       />
                     </div>

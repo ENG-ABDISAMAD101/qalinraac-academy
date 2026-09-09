@@ -30,12 +30,12 @@ function formatStatus(status: string) {
 function statusTone(status: string) {
   const label = formatStatus(status);
   if (label === "Passed" || label === "Reviewed") {
-    return "bg-brand-lime-soft text-brand-navy";
+    return "bg-primary-soft text-primary";
   }
   if (label === "Need Revision") {
     return "bg-destructive/10 text-destructive";
   }
-  return "bg-canvas text-brand-navy dark:bg-muted dark:text-foreground";
+  return "bg-canvas text-primary dark:bg-muted dark:text-foreground";
 }
 
 export default function FeedbackPage() {
@@ -88,7 +88,7 @@ export default function FeedbackPage() {
     <StudentShell>
       <div className="space-y-6 px-6 py-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Feedback & Discussions
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -143,7 +143,7 @@ export default function FeedbackPage() {
                   <p className="text-xs font-medium text-muted-foreground">
                     {card.label}
                   </p>
-                  <p className="mt-2 text-2xl font-bold text-brand-navy dark:text-foreground">
+                  <p className="mt-2 text-2xl font-bold text-primary dark:text-foreground">
                     {card.value}
                   </p>
                 </div>
@@ -173,7 +173,7 @@ export default function FeedbackPage() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 flex-1 space-y-2">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-brand-navy/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-brand-navy dark:bg-brand-lime/20 dark:text-brand-lime">
+                                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary dark:bg-primary/20 dark:text-primary">
                                   {item.kind === "quiz" ? "Quiz" : "Assignment"}
                                 </span>
                                 <span

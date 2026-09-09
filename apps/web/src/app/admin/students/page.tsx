@@ -42,7 +42,7 @@ export default function AdminStudentsPage() {
     <AdminShell>
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Students
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -56,7 +56,7 @@ export default function AdminStudentsPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search name, email, phone…"
-            className="h-10 min-w-[14rem] flex-1 rounded-2xl border border-border bg-background px-4 text-sm outline-none focus:border-brand-navy"
+            className="h-10 min-w-[14rem] flex-1 rounded-2xl border border-border bg-background px-4 text-sm outline-none focus:border-primary"
           />
           {(["All", "Active", "Disabled"] as const).map((f) => (
             <button
@@ -66,7 +66,7 @@ export default function AdminStudentsPage() {
               className={cn(
                 "rounded-full px-4 py-2 text-xs font-semibold",
                 filter === f
-                  ? "bg-brand-navy text-white dark:bg-brand-lime dark:text-brand-navy"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground",
               )}
             >
@@ -127,7 +127,7 @@ export default function AdminStudentsPage() {
                     ) : (
                       <Button
                         size="sm"
-                        className="bg-brand-lime text-brand-navy hover:bg-brand-lime/90"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
                         onClick={() => setStatus(s.id, "Active")}
                       >
                         Enable

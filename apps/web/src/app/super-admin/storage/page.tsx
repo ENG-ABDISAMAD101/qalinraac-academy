@@ -22,7 +22,7 @@ export default function SuperAdminStoragePage() {
         className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
       >
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Storage & Videos
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -38,7 +38,7 @@ export default function SuperAdminStoragePage() {
             </p>
             <div className="mt-3 h-3 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-brand-lime"
+                className="h-full rounded-full bg-primary"
                 style={{ width: `${usedPct}%` }}
               />
             </div>
@@ -80,7 +80,7 @@ export default function SuperAdminStoragePage() {
           </label>
           <Button type="submit">Save storage config</Button>
           {saved ? (
-            <p className="text-sm text-brand-navy dark:text-brand-lime">
+            <p className="text-sm text-primary">
               Storage configuration saved (demo).
             </p>
           ) : null}

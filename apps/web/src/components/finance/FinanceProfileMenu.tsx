@@ -38,7 +38,7 @@ export function FinanceProfileMenu() {
             <AvatarImage src={user?.avatarUrl} alt={name} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
-          <span className="hidden max-w-[9rem] truncate text-sm font-semibold text-brand-navy dark:text-foreground sm:inline">
+          <span className="hidden max-w-[9rem] truncate text-sm font-semibold text-primary dark:text-foreground sm:inline">
             {name}
           </span>
         </button>

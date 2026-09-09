@@ -111,7 +111,7 @@ export default function MyCoursesPage() {
       <div className="space-y-6 px-6 py-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               My Courses
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -183,7 +183,7 @@ export default function MyCoursesPage() {
                       </div>
                       <div className="h-1.5 overflow-hidden rounded-full bg-canvas">
                         <div
-                          className="h-full rounded-full bg-brand-lime"
+                          className="h-full rounded-full bg-primary"
                           style={{
                             width: `${Math.min(
                               Math.max(course.progressPercent, 0),
@@ -206,7 +206,7 @@ export default function MyCoursesPage() {
         ) : (
           <div className="space-y-8">
             <div className="card-soft px-6 py-12 text-center">
-              <h2 className="font-display text-xl font-bold text-brand-navy dark:text-foreground">
+              <h2 className="font-display text-xl font-bold text-primary dark:text-foreground">
                 No active courses yet
               </h2>
               <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
@@ -217,7 +217,7 @@ export default function MyCoursesPage() {
 
             <section className="space-y-4">
               <div>
-                <h2 className="font-display text-2xl font-bold text-brand-navy dark:text-foreground">
+                <h2 className="font-display text-2xl font-bold text-primary dark:text-foreground">
                   Browse courses
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">

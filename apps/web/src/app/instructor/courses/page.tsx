@@ -158,7 +158,7 @@ export default function InstructorCoursesPage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               My Courses
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -251,7 +251,7 @@ export default function InstructorCoursesPage() {
               className={cn(
                 "flex h-9 items-center gap-2 rounded-full px-3 text-xs font-semibold transition-colors",
                 view === "cards"
-                  ? "bg-background text-brand-navy shadow-sm dark:text-foreground"
+                  ? "bg-background text-primary shadow-sm dark:text-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -266,7 +266,7 @@ export default function InstructorCoursesPage() {
               className={cn(
                 "flex h-9 items-center gap-2 rounded-full px-3 text-xs font-semibold transition-colors",
                 view === "table"
-                  ? "bg-background text-brand-navy shadow-sm dark:text-foreground"
+                  ? "bg-background text-primary shadow-sm dark:text-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -317,7 +317,7 @@ export default function InstructorCoursesPage() {
                         unoptimized
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center px-4 text-center text-sm font-semibold text-brand-navy dark:text-brand-lime">
+                      <div className="flex h-full items-center justify-center px-4 text-center text-sm font-semibold text-primary">
                         {course.title}
                       </div>
                     )}

@@ -81,6 +81,14 @@ export async function setCourseStatus(req: Request, res: Response) {
   );
 }
 
+export async function replyDiscussion(req: Request, res: Response) {
+  return sendSuccess(
+    res,
+    await service.replyCourseDiscussion(id(req), req.params.id, req.body.body),
+    201,
+  );
+}
+
 export async function listActivations(req: Request, res: Response) {
   return sendSuccess(
     res,

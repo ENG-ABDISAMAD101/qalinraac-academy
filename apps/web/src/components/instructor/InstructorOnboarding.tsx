@@ -57,7 +57,7 @@ export function InstructorOnboarding() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-navy/55 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-primary/55 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="instructor-onboarding-title"
@@ -68,7 +68,7 @@ export function InstructorOnboarding() {
         </p>
         <h2
           id="instructor-onboarding-title"
-          className="mt-2 font-display text-2xl font-bold text-brand-navy dark:text-brand-lime"
+          className="mt-2 font-display text-2xl font-bold text-primary"
         >
           {current.title}
           {step === 0 ? `, ${user?.fullName?.split(" ")[0] ?? "Instructor"}` : ""}
@@ -118,7 +118,7 @@ export function InstructorOnboarding() {
               type="button"
               disabled={finishing}
               onClick={() => void onFinish()}
-              className="bg-brand-lime text-brand-navy hover:bg-brand-lime/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {finishing ? (
                 <Spinner className="sm on-primary" label="Finishing" />

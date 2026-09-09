@@ -8,7 +8,9 @@ import {
   academicStatusTone,
 } from "@/components/academic/AcademicShell";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import {
   academicApproveCertificateRequest,
   academicCertificateRequest,
@@ -143,7 +145,7 @@ export default function AcademicCertificateReviewPage() {
         ) : cert ? (
           <div className="card-soft space-y-4 p-6">
             <div className="flex items-start justify-between gap-3">
-              <h1 className="font-display text-2xl font-bold text-brand-navy dark:text-foreground">
+              <h1 className="font-display text-2xl font-bold text-primary dark:text-foreground">
                 Certificate review
               </h1>
               <span
@@ -198,23 +200,22 @@ export default function AcademicCertificateReviewPage() {
                 Rejection reason: {cert.rejectionReason}
               </p>
             ) : null}
-            <label className="block text-sm font-medium">
-              Rejection reason
-              <textarea
+            <FormField label="Rejection reason" htmlFor="reject-reason">
+              <Textarea
+                id="reject-reason"
                 rows={3}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-border px-4 py-3"
+                placeholder="Required when rejecting…"
               />
-            </label>
-            <div className="flex flex-wrap gap-2">
+            </FormField>
+            <div className="flex flex-wrap gap-2 border-t border-border pt-5">
               <Button
                 type="button"
-                className="bg-brand-lime text-brand-navy hover:bg-brand-lime/90"
                 disabled={busy || !canApprove}
                 onClick={() => void approve()}
               >
-                {busy ? <Spinner className="sm" label="Working" /> : null}
+                {busy ? <Spinner className="sm on-primary" label="Working" /> : null}
                 Approve
               </Button>
               <Button
@@ -235,7 +236,7 @@ export default function AcademicCertificateReviewPage() {
               </Button>
             </div>
             {result ? (
-              <p className="text-sm font-medium text-brand-navy dark:text-brand-lime">
+              <p className="text-sm font-medium text-primary">
                 {result}
               </p>
             ) : null}

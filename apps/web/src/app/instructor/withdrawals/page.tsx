@@ -133,7 +133,7 @@ export default function InstructorWithdrawalsPage() {
     <InstructorShell>
       <div className="grid gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_1fr] lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Withdrawals
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -189,7 +189,7 @@ export default function InstructorWithdrawalsPage() {
               <p className="text-sm text-destructive">{formError}</p>
             ) : null}
             {formSuccess ? (
-              <p className="rounded-2xl bg-brand-lime-soft px-4 py-3 text-sm font-medium text-brand-navy">
+              <p className="rounded-2xl bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
                 {formSuccess}
               </p>
             ) : null}
@@ -204,7 +204,7 @@ export default function InstructorWithdrawalsPage() {
 
         <div>
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+            <h2 className="text-lg font-bold text-primary dark:text-foreground">
               History
             </h2>
             <label className="relative w-full max-w-xs">

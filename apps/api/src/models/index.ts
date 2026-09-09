@@ -23,3 +23,6 @@ export { DiscussionMessage } from "./DiscussionMessage.js";
 export { Withdrawal } from "./Withdrawal.js";
 export { InstructorAgreement } from "./InstructorAgreement.js";
 export { StudentActivation } from "./StudentActivation.js";
+export { Expense } from "./Expense.js";
+export { ManualIncome } from "./ManualIncome.js";
+export { Shareholder } from "./Shareholder.js";

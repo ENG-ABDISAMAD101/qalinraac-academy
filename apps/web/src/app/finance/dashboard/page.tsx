@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
+  CartesianGrid,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -14,64 +17,142 @@ import {
   financeStatusTone,
   money,
 } from "@/components/finance/FinanceShell";
+import { formatFinanceDate } from "@/components/finance/FinanceDownloadMenu";
 import { Button } from "@/components/ui/button";
 import {
   ScrollTable,
+  ScrollTableEmpty,
   ScrollTableHead,
   StickyActionCell,
   StickyActionHead,
 } from "@/components/ui/scroll-table";
+import { PageLoader, Spinner } from "@/components/ui/spinner";
 import {
-  demoExpenseOverview,
-  demoFinanceChart,
-  demoFinanceExpenses,
-  demoFinanceRevenue,
-  demoFinanceStats,
-  demoFinanceWithdrawals,
-  demoRevenueOverview,
-} from "@/lib/finance-demo-data";
+  financeDashboardRequest,
+  getApiErrorMessage,
+  type FinanceDashboardData,
+} from "@/lib/api";
 import { cn } from "@/lib/utils";
 
+type PendingRow = {
+  id: string;
+  instructor: string;
+  amount: number;
+  method: string;
+  status: string;
+  requestedAt?: string;
+};
+
+function asPending(rows: Array<Record<string, unknown>>): PendingRow[] {
+  return rows.map((r) => ({
+    id: String(r.id ?? ""),
+    instructor: String(r.instructor ?? "Instructor"),
+    amount: Number(r.amount ?? 0),
+    method: String(r.method ?? r.paymentMethod ?? "—"),
+    status: String(r.status ?? "Pending"),
+    requestedAt:
+      typeof r.requestedAt === "string"
+        ? r.requestedAt
+        : typeof r.requestDate === "string"
+          ? r.requestDate
+          : undefined,
+  }));
+}
+
 export default function FinanceDashboardPage() {
+  const [data, setData] = useState<FinanceDashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await financeDashboardRequest();
+        if (!cancelled) setData(res);
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            getApiErrorMessage(err, "Could not load finance dashboard."),
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading && !data) {
+    return (
+      <FinanceShell>
+        <PageLoader label="Loading finance dashboard" />
+      </FinanceShell>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <FinanceShell>
+        <div className="px-4 py-10 sm:px-6 lg:px-8">
+          <p className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </p>
+        </div>
+      </FinanceShell>
+    );
+  }
+
+  if (!data) return null;
+
   const stats = [
-    { label: "Total Revenue", value: money(demoFinanceStats.totalRevenue) },
-    { label: "Total Expenses", value: money(demoFinanceStats.totalExpenses) },
-    { label: "Net Profit", value: money(demoFinanceStats.netProfit) },
+    { label: "Total Revenue", value: money(data.stats.totalRevenue) },
+    { label: "Total Expenses", value: money(data.stats.totalExpenses) },
+    { label: "Net Profit", value: money(data.stats.netProfit) },
     {
       label: "Pending Withdrawals",
-      value: demoFinanceStats.pendingWithdrawals,
+      value: data.stats.pendingWithdrawals,
     },
     {
       label: "Total Instructor Payments",
-      value: money(demoFinanceStats.totalInstructorPayments),
-    },
-    {
-      label: "Active Shareholders",
-      value: demoFinanceStats.activeShareholders,
+      value: money(data.stats.totalInstructorPayments),
     },
   ];
 
-  const pending = demoFinanceWithdrawals.filter((w) => w.status === "Pending");
+  const pending = asPending(data.pendingWithdrawals);
 
   return (
     <FinanceShell>
       <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
-        <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
-            Finance Control Center
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Revenue, expenses, withdrawals, and distributions
-          </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
+              Finance Control Center
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Revenue, expenses, withdrawals, and distributions
+            </p>
+          </div>
+          {loading ? <Spinner className="sm" label="Refreshing" /> : null}
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {error ? (
+          <p className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {stats.map((s) => (
             <div key={s.label} className="card-soft px-5 py-4">
               <p className="text-xs font-medium text-muted-foreground">
                 {s.label}
               </p>
-              <p className="mt-1 text-2xl font-bold text-brand-navy dark:text-foreground">
+              <p className="mt-1 text-2xl font-bold text-primary dark:text-foreground">
                 {s.value}
               </p>
             </div>
@@ -82,34 +163,34 @@ export default function FinanceDashboardPage() {
           <section className="card-soft p-5">
             <h2 className="mb-3 text-base font-bold">Revenue Overview</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                ["Today", demoRevenueOverview.today],
-                ["Weekly", demoRevenueOverview.weekly],
-                ["Monthly", demoRevenueOverview.monthly],
-                ["Annual", demoRevenueOverview.annual],
-              ].map(([label, value]) => (
-                <div key={String(label)} className="rounded-2xl bg-muted px-3 py-3">
+              {(
+                [
+                  ["Today", data.revenueOverview.today],
+                  ["Weekly", data.revenueOverview.weekly],
+                  ["Monthly", data.revenueOverview.monthly],
+                  ["Annual", data.revenueOverview.annual],
+                ] as const
+              ).map(([label, value]) => (
+                <div key={label} className="rounded-2xl bg-muted px-3 py-3">
                   <p className="text-[11px] text-muted-foreground">{label}</p>
-                  <p className="font-bold">{money(Number(value))}</p>
+                  <p className="font-bold">{money(value)}</p>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Course Sales {money(demoRevenueOverview.courseSales)} · Manual
-              Income {money(demoRevenueOverview.manualIncome)}
-            </p>
           </section>
           <section className="card-soft p-5">
             <h2 className="mb-3 text-base font-bold">Expense Overview</h2>
             <div className="grid grid-cols-3 gap-3">
-              {[
-                ["Today", demoExpenseOverview.today],
-                ["Monthly", demoExpenseOverview.monthly],
-                ["Annual", demoExpenseOverview.annual],
-              ].map(([label, value]) => (
-                <div key={String(label)} className="rounded-2xl bg-muted px-3 py-3">
+              {(
+                [
+                  ["Today", data.expenseOverview.today],
+                  ["Monthly", data.expenseOverview.monthly],
+                  ["Annual", data.expenseOverview.annual],
+                ] as const
+              ).map(([label, value]) => (
+                <div key={label} className="rounded-2xl bg-muted px-3 py-3">
                   <p className="text-[11px] text-muted-foreground">{label}</p>
-                  <p className="font-bold">{money(Number(value))}</p>
+                  <p className="font-bold">{money(value)}</p>
                 </div>
               ))}
             </div>
@@ -157,105 +238,82 @@ export default function FinanceDashboardPage() {
             </tr>
           </ScrollTableHead>
           <tbody>
-            {pending.map((w) => (
-              <tr key={w.id} className="border-b border-border/70 hover:bg-accent/40">
-                <td className="whitespace-nowrap px-5 py-4 font-semibold">
-                  {w.instructor}
-                </td>
-                <td className="px-5 py-4">{money(w.amount)}</td>
-                <td className="px-5 py-4">{w.paymentMethod}</td>
-                <td className="px-5 py-4 text-muted-foreground">
-                  {w.requestDate}
-                </td>
-                <td className="px-5 py-4">
-                  <span
-                    className={cn(
-                      "rounded-full px-3 py-1 text-xs font-bold",
-                      financeStatusTone(w.status),
-                    )}
-                  >
-                    {w.status}
-                  </span>
-                </td>
-                <StickyActionCell>
-                  <Button asChild size="sm">
-                    <Link href={`/finance/withdrawals/${w.id}`}>Review</Link>
-                  </Button>
-                </StickyActionCell>
-              </tr>
-            ))}
+            {pending.length === 0 ? (
+              <ScrollTableEmpty colSpan={6} message="No pending withdrawals" />
+            ) : (
+              pending.map((w) => (
+                <tr
+                  key={w.id}
+                  className="border-b border-border/70 hover:bg-accent/40"
+                >
+                  <td className="whitespace-nowrap px-5 py-4 font-semibold">
+                    {w.instructor}
+                  </td>
+                  <td className="px-5 py-4">{money(w.amount)}</td>
+                  <td className="px-5 py-4">{w.method}</td>
+                  <td className="px-5 py-4 text-muted-foreground">
+                    {formatFinanceDate(w.requestedAt)}
+                  </td>
+                  <td className="px-5 py-4">
+                    <span
+                      className={cn(
+                        "rounded-full px-3 py-1 text-xs font-bold",
+                        financeStatusTone(w.status),
+                      )}
+                    >
+                      {w.status}
+                    </span>
+                  </td>
+                  <StickyActionCell>
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/finance/withdrawals/${w.id}`}>View</Link>
+                    </Button>
+                  </StickyActionCell>
+                </tr>
+              ))
+            )}
           </tbody>
         </ScrollTable>
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <ScrollTable
-            minWidthClassName="min-w-[40rem]"
-            maxHeightClassName="max-h-[18rem]"
-            toolbar={<p className="text-sm font-semibold">Recent Revenue</p>}
-          >
-            <ScrollTableHead>
-              <tr>
-                <th className="px-5 py-3 font-medium">Student</th>
-                <th className="px-5 py-3 font-medium">Course</th>
-                <th className="px-5 py-3 font-medium">Amount</th>
-                <th className="px-5 py-3 font-medium">Date</th>
-              </tr>
-            </ScrollTableHead>
-            <tbody>
-              {demoFinanceRevenue.slice(0, 4).map((r) => (
-                <tr key={r.id} className="border-b border-border/70">
-                  <td className="px-5 py-3 font-semibold">{r.student}</td>
-                  <td className="max-w-[12rem] px-5 py-3">
-                    <span className="line-clamp-1">{r.course}</span>
-                  </td>
-                  <td className="px-5 py-3">{money(r.amount)}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{r.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </ScrollTable>
-
-          <ScrollTable
-            minWidthClassName="min-w-[28rem]"
-            maxHeightClassName="max-h-[18rem]"
-            toolbar={<p className="text-sm font-semibold">Recent Expenses</p>}
-          >
-            <ScrollTableHead>
-              <tr>
-                <th className="px-5 py-3 font-medium">Title</th>
-                <th className="px-5 py-3 font-medium">Amount</th>
-                <th className="px-5 py-3 font-medium">Date</th>
-              </tr>
-            </ScrollTableHead>
-            <tbody>
-              {demoFinanceExpenses.map((e) => (
-                <tr key={e.id} className="border-b border-border/70">
-                  <td className="px-5 py-3 font-semibold">{e.title}</td>
-                  <td className="px-5 py-3">{money(e.amount)}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{e.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </ScrollTable>
-        </div>
-
         <section className="card-soft p-5">
           <h2 className="mb-4 text-base font-bold">Financial Summary</h2>
-          <div className="h-64">
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={demoFinanceChart}>
+              <BarChart data={data.chart}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis
                   dataKey="label"
                   tick={{ fontSize: 11, fill: "#6B7280" }}
                   axisLine={false}
                   tickLine={false}
                 />
-                <YAxis hide />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "#6B7280" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `$${v}`}
+                />
                 <Tooltip
                   formatter={(value) => money(Number(value))}
-                  contentStyle={{ borderRadius: 12, border: "none", fontSize: 12 }}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "none",
+                    fontSize: 12,
+                  }}
                 />
-                <Bar dataKey="value" fill="#002B5C" radius={[8, 8, 8, 8]} />
+                <Legend />
+                <Bar
+                  dataKey="revenue"
+                  name="Revenue"
+                  fill="#111827"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar
+                  dataKey="expenses"
+                  name="Expenses"
+                  fill="#6B7280"
+                  radius={[8, 8, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

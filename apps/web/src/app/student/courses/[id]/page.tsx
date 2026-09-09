@@ -24,7 +24,7 @@ export default function CourseDetailPage() {
           />
         </div>
         <div className="card-soft p-6">
-          <h1 className="font-display text-3xl font-bold text-brand-navy">
+          <h1 className="font-display text-3xl font-bold text-primary">
             {course.title}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -32,14 +32,14 @@ export default function CourseDetailPage() {
           </p>
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-canvas">
             <div
-              className="h-full rounded-full bg-brand-lime"
+              className="h-full rounded-full bg-primary"
               style={{ width: `${course.progress}%` }}
             />
           </div>
           <p className="mt-2 text-sm text-muted-foreground">{course.progress}% complete</p>
           <Link
             href={`/student/learn/${course.id}`}
-            className="mt-6 inline-flex rounded-full bg-brand-navy px-5 py-2.5 text-sm font-semibold text-white"
+            className="mt-6 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white"
           >
             Continue Learning
           </Link>

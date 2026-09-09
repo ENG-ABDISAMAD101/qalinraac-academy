@@ -79,7 +79,7 @@ export default function AcademicNotificationsPage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Notifications{" "}
               <span className="text-muted-foreground">{items.length}</span>
             </h1>
@@ -118,11 +118,11 @@ export default function AcademicNotificationsPage() {
                 key={n.id}
                 className={cn(
                   "card-soft flex flex-wrap items-start justify-between gap-4 p-5",
-                  !n.read && "ring-1 ring-brand-lime/40",
+                  !n.read && "ring-1 ring-primary/40",
                 )}
               >
                 <div className="flex min-w-0 gap-3">
-                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold uppercase text-brand-navy dark:text-brand-lime">
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold uppercase text-primary">
                     {n.type.slice(0, 2)}
                   </span>
                   <div className="min-w-0">

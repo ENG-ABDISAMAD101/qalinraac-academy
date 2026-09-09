@@ -27,7 +27,7 @@ export default function ResearchResourcesPage() {
     <ResearchShell>
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Research Resources
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -43,7 +43,7 @@ export default function ResearchResourcesPage() {
           className="h-10 w-full max-w-md rounded-2xl border border-border bg-background px-4 text-sm"
         />
         {flash ? (
-          <p className="text-sm text-brand-navy dark:text-brand-lime">{flash}</p>
+          <p className="text-sm text-primary">{flash}</p>
         ) : null}
         <ScrollTable minWidthClassName="min-w-[40rem]">
           <ScrollTableHead>

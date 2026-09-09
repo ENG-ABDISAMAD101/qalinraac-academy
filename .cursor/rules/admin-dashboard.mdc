@@ -1,0 +1,26 @@
+---
+description: Admin role portal — operations, support tickets, monitoring
+alwaysApply: true
+---
+
+# Admin Role
+
+Operations Manager only: monitor students/instructors/courses, support tickets, operational reports. No system config, finance, research, roles, or user creation.
+
+## Sidebar
+
+Dashboard · Students · Instructors · Courses · Support Tickets · Reports · Notifications · Profile · Logout
+
+## Dashboard
+
+Stats: Total Students, Total Instructors, Total Courses, Active Courses, Open Support Tickets, Total Users.
+**No** revenue/expenses/profit/withdrawals/shareholders (Finance only).
+Recent Support Tickets + Academic Overview (monitor) + Recent Users. Notifications via header only.
+
+## Key rules
+
+- Students: view, enable/disable — never delete
+- Instructors & Courses: view only (no approve/reject/create)
+- Support: reply, close, reopen — core responsibility
+- Academic actions (approve courses/certs/activations): only if Super Admin grants; default view-only
+- No finance, payments, research, system settings, roles, or user creation

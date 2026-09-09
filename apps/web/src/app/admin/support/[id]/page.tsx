@@ -50,7 +50,7 @@ export default function AdminSupportDetailPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="font-mono text-xs text-muted-foreground">{base.id}</p>
-              <h1 className="font-display text-2xl font-bold text-brand-navy dark:text-foreground">
+              <h1 className="font-display text-2xl font-bold text-primary dark:text-foreground">
                 {base.subject}
               </h1>
             </div>
@@ -155,7 +155,7 @@ export default function AdminSupportDetailPage() {
             </div>
           </form>
           {flash ? (
-            <p className="text-sm font-medium text-brand-navy dark:text-brand-lime">
+            <p className="text-sm font-medium text-primary">
               {flash}
             </p>
           ) : null}

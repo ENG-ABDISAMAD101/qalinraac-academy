@@ -21,7 +21,7 @@ export default function SuperAdminSecurityPage() {
         className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 lg:px-8"
       >
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Security
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -80,7 +80,7 @@ export default function SuperAdminSecurityPage() {
           <div className="sm:col-span-2">
             <Button type="submit">Save security policy</Button>
             {saved ? (
-              <p className="mt-3 text-sm text-brand-navy dark:text-brand-lime">
+              <p className="mt-3 text-sm text-primary">
                 Security policy updated (demo) — audited.
               </p>
             ) : null}

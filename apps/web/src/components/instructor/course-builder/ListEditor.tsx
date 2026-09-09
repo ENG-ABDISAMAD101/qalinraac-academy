@@ -102,7 +102,7 @@ export function ListEditor({
           {items.map((item, index) => (
             <li
               key={`${item}-${index}`}
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-navy/5 px-3 py-1.5 text-xs font-medium text-brand-navy dark:bg-brand-lime/10 dark:text-brand-lime"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary dark:bg-primary/10 dark:text-primary"
             >
               {item}
               {!readOnly ? (
@@ -110,7 +110,7 @@ export function ListEditor({
                   type="button"
                   aria-label={`Remove ${item}`}
                   onClick={() => removeAt(index)}
-                  className="rounded-full p-0.5 hover:bg-brand-navy/10"
+                  className="rounded-full p-0.5 hover:bg-primary/10"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -127,7 +127,7 @@ export function ListEditor({
                 "flex items-start gap-2 rounded-2xl border border-border/70 px-3 py-2 text-sm",
               )}
             >
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-lime" />
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
               <span className="min-w-0 flex-1 break-words">{item}</span>
               {!readOnly ? (
                 <span className="flex shrink-0 items-center gap-0.5">

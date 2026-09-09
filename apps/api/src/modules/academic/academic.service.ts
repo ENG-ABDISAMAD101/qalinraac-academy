@@ -654,6 +654,48 @@ export const setCourseStatusSchema = z.object({
   status: z.enum(["draft", "published"]),
 });
 
+export const replyDiscussionSchema = z.object({
+  body: z.string().min(1).max(5000),
+});
+
+/** Academic replies on course review discussion thread. */
+export async function replyCourseDiscussion(
+  actorId: string,
+  courseId: string,
+  body: string,
+) {
+  const id = oid(courseId, "courseId");
+  const course = await Course.findById(id).select("_id title instructorIds");
+  if (!course) throw new AppError(404, "NOT_FOUND", "Course not found");
+  const text = body.trim();
+  if (!text) throw new AppError(400, "EMPTY", "Message is required");
+
+  const msg = await DiscussionMessage.create({
+    courseId: course._id,
+    authorId: oid(actorId),
+    body: text,
+  });
+
+  for (const instructorId of course.instructorIds ?? []) {
+    await createNotification({
+      userId: String(instructorId),
+      title: "Academic replied on your course",
+      body: text.slice(0, 140),
+      type: "course",
+      meta: { courseId, discussionId: String(msg._id) },
+    });
+  }
+
+  const author = await User.findById(actorId).select("fullName avatarUrl role");
+  return {
+    id: String(msg._id),
+    body: msg.body,
+    createdAt: msg.createdAt,
+    authorName: author?.fullName ?? "Academic",
+    authorRole: author?.role ?? "Academic",
+  };
+}
+
 /** Academic can set a course to Draft or Published (overrides pending review). */
 export async function setCourseStatus(
   courseId: string,

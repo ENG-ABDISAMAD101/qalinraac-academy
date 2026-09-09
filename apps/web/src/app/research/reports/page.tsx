@@ -28,7 +28,7 @@ export default function ResearchReportsPage() {
       <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Research Reports
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -110,7 +110,7 @@ export default function ResearchReportsPage() {
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#002B5C" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="value" fill="#111827" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -10,12 +10,12 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
+  DialogFormActions,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FormField, formSelectClassName } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -139,7 +139,7 @@ export default function InstructorAssignmentsPage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Assignments
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -189,39 +189,36 @@ export default function InstructorAssignmentsPage() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-[460px] gap-5">
           <DialogHeader>
             <DialogTitle>Create assignment</DialogTitle>
             <DialogDescription>
               Attach the assignment to a course lesson.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={onCreate} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="a-title">Title</Label>
+          <form onSubmit={onCreate} className="space-y-5">
+            <FormField label="Title" htmlFor="a-title">
               <Input
                 id="a-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="a-desc">Description</Label>
+            </FormField>
+            <FormField label="Description" htmlFor="a-desc">
               <Textarea
                 id="a-desc"
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="a-course">Course</Label>
+            </FormField>
+            <FormField label="Course" htmlFor="a-course">
               <select
                 id="a-course"
                 value={courseId}
                 onChange={(e) => setCourseId(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-border bg-background px-4 text-sm"
+                className={formSelectClassName}
                 required
               >
                 <option value="">Select course</option>
@@ -231,14 +228,13 @@ export default function InstructorAssignmentsPage() {
                   </option>
                 ))}
               </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="a-lesson">Lesson</Label>
+            </FormField>
+            <FormField label="Lesson" htmlFor="a-lesson">
               <select
                 id="a-lesson"
                 value={lessonId}
                 onChange={(e) => setLessonId(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-border bg-background px-4 text-sm"
+                className={formSelectClassName}
                 required
                 disabled={!courseId || loadingLessons}
               >
@@ -251,25 +247,17 @@ export default function InstructorAssignmentsPage() {
                   </option>
                 ))}
               </select>
-            </div>
+            </FormField>
             {formError ? (
               <p className="text-sm text-destructive">{formError}</p>
             ) : null}
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={creating}>
-                {creating ? (
-                  <Spinner className="sm on-primary" label="Creating" />
-                ) : null}
-                Create
-              </Button>
-            </DialogFooter>
+            <DialogFormActions
+              helpHref="/instructor/support"
+              cancelLabel="Cancel"
+              confirmLabel="Create"
+              confirmLoading={creating}
+              onCancel={() => setOpen(false)}
+            />
           </form>
         </DialogContent>
       </Dialog>

@@ -42,7 +42,7 @@ export default function SuperAdminRolesPage() {
     <SuperAdminShell>
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Roles & Permissions
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -61,7 +61,7 @@ export default function SuperAdminRolesPage() {
                 className={cn(
                   "w-full rounded-xl px-3 py-2.5 text-left text-sm transition",
                   selectedId === r.id
-                    ? "bg-brand-navy text-white dark:bg-brand-lime dark:text-brand-navy"
+                    ? "bg-primary text-primary-foreground"
                     : "hover:bg-accent",
                 )}
               >
@@ -70,7 +70,7 @@ export default function SuperAdminRolesPage() {
                   className={cn(
                     "text-[11px]",
                     selectedId === r.id
-                      ? "text-white/80 dark:text-brand-navy/80"
+                      ? "text-white/80 dark:text-primary/80"
                       : "text-muted-foreground",
                   )}
                 >
@@ -126,7 +126,7 @@ export default function SuperAdminRolesPage() {
                               className={cn(
                                 "h-7 w-7 rounded-lg text-xs font-bold",
                                 on
-                                  ? "bg-brand-lime text-brand-navy"
+                                  ? "bg-primary text-primary-foreground"
                                   : "bg-muted text-muted-foreground",
                               )}
                             >
@@ -141,7 +141,7 @@ export default function SuperAdminRolesPage() {
               </table>
             </div>
             {flash ? (
-              <p className="text-sm text-brand-navy dark:text-brand-lime">
+              <p className="text-sm text-primary">
                 {flash}
               </p>
             ) : null}

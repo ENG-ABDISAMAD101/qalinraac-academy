@@ -82,7 +82,7 @@ export function ResearchShell({ children }: { children: ReactNode }) {
                   className={cn(
                     "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-colors",
                     active
-                      ? "bg-brand-navy text-white shadow-sm dark:bg-brand-lime dark:text-brand-navy"
+                      ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
@@ -123,7 +123,7 @@ export function researchStatusTone(status: string) {
     case "Published":
     case "Completed":
     case "Ready for Publication":
-      return "bg-brand-lime-soft text-brand-navy";
+      return "bg-primary-soft text-primary";
     case "Submitted":
     case "Under Review":
     case "Resubmitted":

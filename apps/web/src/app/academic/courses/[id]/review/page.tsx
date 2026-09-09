@@ -3,15 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import {
-  ChevronDown,
-  ChevronRight,
-  Info,
-  MessageSquare,
-  UserRound,
-} from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Info, MessageSquare, UserRound } from "lucide-react";
 import { AcademicShell } from "@/components/academic/AcademicShell";
+import { CourseCurriculumPanel } from "@/components/instructor/CourseCurriculumPanel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge, courseStatusBadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,12 +21,15 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
   academicCourseReviewRequest,
+  academicReplyCourseDiscussionRequest,
   academicSetCourseStatusRequest,
   courseCategoryLabel,
   getApiErrorMessage,
   mediaPublicUrl,
+  type InstructorModule,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -43,11 +41,15 @@ type LessonRow = {
   description?: string;
   videoUrl?: string;
   durationMinutes?: number;
+  order?: number;
+  isPreview?: boolean;
 };
 
 type CurriculumModule = {
   id?: string;
   title: string;
+  description?: string;
+  order?: number;
   lessons?: LessonRow[];
 };
 
@@ -101,6 +103,25 @@ function accessLabel(value?: string) {
   return value ?? "—";
 }
 
+function toCurriculumPanel(modules: CurriculumModule[]): InstructorModule[] {
+  return modules.map((m, i) => ({
+    id: m.id ?? `mod-${i}`,
+    title: m.title,
+    description: m.description,
+    order: m.order ?? i + 1,
+    lessons: (m.lessons ?? []).map((l, li) => ({
+      id: l.id ?? `lesson-${i}-${li}`,
+      title: l.title ?? "Lesson",
+      description: l.description,
+      videoUrl: l.videoUrl,
+      durationMinutes: l.durationMinutes,
+      order: l.order ?? li + 1,
+      isPreview: l.isPreview,
+      moduleId: m.id,
+    })),
+  }));
+}
+
 export default function AcademicCourseReviewPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -109,7 +130,6 @@ export default function AcademicCourseReviewPage() {
   const [data, setData] = useState<CourseReviewPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
   const [saveAs, setSaveAs] = useState<"draft" | "published">("published");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
@@ -117,12 +137,16 @@ export default function AcademicCourseReviewPage() {
   const [progressDone, setProgressDone] = useState(false);
   const [progressError, setProgressError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [reply, setReply] = useState("");
+  const [replyBusy, setReplyBusy] = useState(false);
+  const [replyError, setReplyError] = useState("");
   const startedAtRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const cancelledRef = useRef(false);
   const submitStartedRef = useRef(false);
 
-  const progressLocked = progressOpen && submitting && !progressDone && !progressError;
+  const progressLocked =
+    progressOpen && submitting && !progressDone && !progressError;
 
   const load = useCallback(async () => {
     if (!courseId) return;
@@ -133,8 +157,6 @@ export default function AcademicCourseReviewPage() {
         courseId,
       )) as CourseReviewPayload;
       setData(res);
-      const first = res.curriculum?.[0];
-      if (first?.id) setOpenModules({ [first.id]: true });
     } catch (err) {
       setError(getApiErrorMessage(err, "Could not load course."));
       setData(null);
@@ -227,6 +249,22 @@ export default function AcademicCourseReviewPage() {
     rafRef.current = requestAnimationFrame(tick);
   }
 
+  async function onReply(e: FormEvent) {
+    e.preventDefault();
+    if (!courseId || !reply.trim()) return;
+    setReplyBusy(true);
+    setReplyError("");
+    try {
+      await academicReplyCourseDiscussionRequest(courseId, reply.trim());
+      setReply("");
+      await load();
+    } catch (err) {
+      setReplyError(getApiErrorMessage(err, "Could not send reply."));
+    } finally {
+      setReplyBusy(false);
+    }
+  }
+
   const course = data?.course;
   const title = course?.title ?? "Course";
   const status = course?.status ?? "";
@@ -239,7 +277,10 @@ export default function AcademicCourseReviewPage() {
   const outcomes = course?.learningOutcomes ?? [];
   const instructors = course?.instructors ?? [];
   const discussions = data?.discussions ?? [];
-  const curriculum = data?.curriculum ?? [];
+  const panelCurriculum = useMemo(
+    () => toCurriculumPanel(data?.curriculum ?? []),
+    [data?.curriculum],
+  );
 
   return (
     <AcademicShell>
@@ -265,48 +306,52 @@ export default function AcademicCourseReviewPage() {
           </p>
         ) : (
           <>
-            {/* Hero course information — layered thumbnail */}
-            <section className="relative overflow-hidden rounded-[1.75rem] border border-border/60 bg-brand-navy text-white shadow-sm">
-              <div className="absolute inset-0">
+            {/* Thumbnail-first hero; meta cards overlap bottom edge */}
+            <section className="relative pb-24 sm:pb-20">
+              <div className="relative aspect-[21/9] min-h-[220px] w-full overflow-hidden rounded-[1.75rem] border border-border/60 bg-muted sm:min-h-[280px]">
                 {thumb ? (
                   <Image
                     src={thumb}
-                    alt=""
+                    alt={title}
                     fill
-                    className="object-cover opacity-35"
+                    className="object-cover"
                     unoptimized
+                    priority
                   />
                 ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-brand-navy via-[#003d7a] to-brand-navy" />
+                  <div className="flex h-full items-center justify-center bg-primary px-6 text-center text-primary-foreground">
+                    <p className="font-display text-2xl font-bold text-white">
+                      {title}
+                    </p>
+                  </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-navy/95 via-brand-navy/80 to-brand-navy/40" />
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
+                {course?.category ? (
+                  <span className="absolute left-4 top-4 rounded-full bg-background/95 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-primary shadow-sm backdrop-blur">
+                    {courseCategoryLabel(course.category) || course.category}
+                  </span>
+                ) : null}
               </div>
 
-              <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.4fr_0.8fr] lg:p-10">
-                <div className="space-y-4">
-                  {course?.category ? (
-                    <span className="inline-flex rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wide backdrop-blur">
-                      {courseCategoryLabel(course.category) || course.category}
-                    </span>
-                  ) : null}
-                  <h1 className="font-display text-3xl font-bold leading-tight sm:text-4xl">
+              <div className="absolute inset-x-4 bottom-0 grid gap-3 sm:inset-x-6 sm:grid-cols-[1.4fr_auto] lg:inset-x-8">
+                <div className="rounded-3xl border border-border/70 bg-background/95 p-5 shadow-lg backdrop-blur-md dark:bg-background/90">
+                  <h1 className="font-display text-2xl font-bold text-primary dark:text-foreground sm:text-3xl">
                     {title}
                   </h1>
-                  <p className="max-w-2xl text-sm leading-relaxed text-white/85 sm:text-base">
+                  <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                     {course?.description || "No description provided."}
                   </p>
                   {outcomes.length > 0 ? (
-                    <div className="pt-2">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-lime">
+                    <div className="mt-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                         What you&apos;ll learn
                       </p>
-                      <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <ul className="mt-2 flex flex-wrap gap-2">
                         {outcomes.slice(0, 6).map((o) => (
-                          <li
-                            key={o}
-                            className="rounded-xl bg-white/10 px-3 py-2 text-sm backdrop-blur"
-                          >
-                            {o}
+                          <li key={o}>
+                            <Badge variant="lime" className="normal-case">
+                              {o}
+                            </Badge>
                           </li>
                         ))}
                       </ul>
@@ -314,54 +359,63 @@ export default function AcademicCourseReviewPage() {
                   ) : null}
                 </div>
 
-                <div className="flex flex-col justify-between gap-4 rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur-md">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-white/70">
+                <div className="grid min-w-[12rem] grid-cols-2 gap-2 sm:min-w-[16rem] sm:grid-cols-1">
+                  <div className="rounded-3xl border border-border/70 bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
                       Price
                     </p>
-                    <p className="mt-1 text-3xl font-bold text-brand-lime">
+                    <p className="mt-0.5 text-2xl font-bold text-primary">
                       {price}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-2xl bg-black/20 px-3 py-3">
-                      <p className="text-xs text-white/60">Lessons</p>
-                      <p className="mt-1 text-lg font-bold">
-                        {data?.counts?.lessons ?? 0}
-                      </p>
+                  <div className="rounded-3xl border border-border/70 bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md">
+                    <div className="flex items-end justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          Lessons
+                        </p>
+                        <p className="text-xl font-bold">
+                          {data?.counts?.lessons ?? 0}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          Access
+                        </p>
+                        <p className="text-sm font-bold">
+                          {accessLabel(course?.accessDuration)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="rounded-2xl bg-black/20 px-3 py-3">
-                      <p className="text-xs text-white/60">Access</p>
-                      <p className="mt-1 text-lg font-bold">
-                        {accessLabel(course?.accessDuration)}
-                      </p>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {course?.level ? (
+                        <Badge variant="muted" className="normal-case capitalize">
+                          {course.level}
+                        </Badge>
+                      ) : null}
+                      {course?.language ? (
+                        <Badge variant="outline" className="uppercase">
+                          {course.language}
+                        </Badge>
+                      ) : null}
+                      <Badge variant="outline" className="normal-case">
+                        {data?.counts?.modules ?? 0}{" "}
+                        {(data?.counts?.modules ?? 0) === 1
+                          ? "section"
+                          : "sections"}
+                      </Badge>
                     </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-xs text-white/80">
-                    {course?.level ? (
-                      <span className="rounded-full bg-white/10 px-2.5 py-1 capitalize">
-                        {course.level}
-                      </span>
-                    ) : null}
-                    {course?.language ? (
-                      <span className="rounded-full bg-white/10 px-2.5 py-1 uppercase">
-                        {course.language}
-                      </span>
-                    ) : null}
-                    <span className="rounded-full bg-white/10 px-2.5 py-1">
-                      {data?.counts?.modules ?? 0} sections
-                    </span>
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* Split: tabs + curriculum / save */}
             <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
               <div className="card-soft overflow-hidden">
-                <Tabs defaultValue="instructor" className="w-full">
+                <Tabs defaultValue="curriculum" className="w-full">
                   <div className="border-b border-border/70 px-4 pt-4">
                     <TabsList>
+                      <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
                       <TabsTrigger value="instructor">
                         <UserRound className="mr-1.5 h-3.5 w-3.5" />
                         Instructor
@@ -372,6 +426,10 @@ export default function AcademicCourseReviewPage() {
                       </TabsTrigger>
                     </TabsList>
                   </div>
+
+                  <TabsContent value="curriculum" className="p-5">
+                    <CourseCurriculumPanel curriculum={panelCurriculum} />
+                  </TabsContent>
 
                   <TabsContent value="instructor" className="space-y-4 p-5">
                     {instructors.length === 0 ? (
@@ -394,7 +452,7 @@ export default function AcademicCourseReviewPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-semibold text-brand-navy dark:text-foreground">
+                            <p className="font-semibold text-primary dark:text-foreground">
                               {ins.fullName ?? "Instructor"}
                             </p>
                             <p className="text-sm text-muted-foreground">
@@ -404,81 +462,12 @@ export default function AcademicCourseReviewPage() {
                         </div>
                       ))
                     )}
-
-                    <div className="pt-2">
-                      <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                        Curriculum
-                      </h2>
-                      <div className="mt-3 space-y-2">
-                        {curriculum.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">
-                            No sections yet.
-                          </p>
-                        ) : (
-                          curriculum.map((mod, idx) => {
-                            const key = mod.id ?? String(idx);
-                            const open = openModules[key] ?? false;
-                            return (
-                              <div
-                                key={key}
-                                className="overflow-hidden rounded-2xl border border-border/70"
-                              >
-                                <button
-                                  type="button"
-                                  className="flex w-full items-center justify-between gap-3 bg-muted/40 px-4 py-3 text-left"
-                                  onClick={() =>
-                                    setOpenModules((prev) => ({
-                                      ...prev,
-                                      [key]: !open,
-                                    }))
-                                  }
-                                >
-                                  <span className="font-semibold">
-                                    {mod.title}
-                                  </span>
-                                  <span className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    {mod.lessons?.length ?? 0} lessons
-                                    {open ? (
-                                      <ChevronDown className="h-4 w-4" />
-                                    ) : (
-                                      <ChevronRight className="h-4 w-4" />
-                                    )}
-                                  </span>
-                                </button>
-                                {open ? (
-                                  <ul className="divide-y divide-border/60">
-                                    {(mod.lessons ?? []).map((lesson, li) => (
-                                      <li
-                                        key={lesson.id ?? `${key}-${li}`}
-                                        className="px-4 py-3 text-sm"
-                                      >
-                                        <p className="font-medium">
-                                          {lesson.title}
-                                        </p>
-                                        {lesson.description ? (
-                                          <p className="mt-1 line-clamp-2 text-muted-foreground">
-                                            {lesson.description.replace(
-                                              /<[^>]+>/g,
-                                              "",
-                                            )}
-                                          </p>
-                                        ) : null}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                ) : null}
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
                   </TabsContent>
 
                   <TabsContent value="discussions" className="space-y-4 p-5">
                     {discussions.length === 0 ? (
                       <p className="text-sm text-muted-foreground">
-                        No discussion messages yet.
+                        No messages yet. Reply to start the review discussion.
                       </p>
                     ) : (
                       discussions.map((d) => (
@@ -489,7 +478,9 @@ export default function AcademicCourseReviewPage() {
                           <div className="flex items-center gap-3">
                             <Avatar className="h-9 w-9">
                               <AvatarFallback>
-                                {(d.authorName ?? "U").slice(0, 1).toUpperCase()}
+                                {(d.authorName ?? "U")
+                                  .slice(0, 1)
+                                  .toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             <div>
@@ -510,13 +501,38 @@ export default function AcademicCourseReviewPage() {
                         </div>
                       ))
                     )}
+
+                    <form onSubmit={onReply} className="space-y-3 border-t border-border/60 pt-4">
+                      <p className="text-sm font-semibold text-primary dark:text-foreground">
+                        Reply to instructor
+                      </p>
+                      <Textarea
+                        value={reply}
+                        onChange={(e) => setReply(e.target.value)}
+                        placeholder="Write feedback or a question for the instructor…"
+                        rows={4}
+                        required
+                      />
+                      {replyError ? (
+                        <p className="text-sm text-destructive">{replyError}</p>
+                      ) : null}
+                      <Button
+                        type="submit"
+                        disabled={replyBusy || !reply.trim()}
+                      >
+                        {replyBusy ? (
+                          <Spinner className="sm on-primary" label="Sending" />
+                        ) : null}
+                        Send reply
+                      </Button>
+                    </form>
                   </TabsContent>
                 </Tabs>
               </div>
 
               <aside className="card-soft h-fit space-y-5 p-5">
                 <div>
-                  <h2 className="text-base font-bold text-brand-navy dark:text-foreground">
+                  <h2 className="text-base font-bold text-primary dark:text-foreground">
                     Save as
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -538,7 +554,7 @@ export default function AcademicCourseReviewPage() {
                       className={cn(
                         "rounded-2xl border px-4 py-3 text-sm font-semibold transition",
                         saveAs === value
-                          ? "border-brand-navy bg-brand-navy text-white dark:border-brand-lime dark:bg-brand-lime dark:text-brand-navy"
+                          ? "border-primary bg-primary text-primary-foreground"
                           : "border-border bg-background text-muted-foreground hover:text-foreground",
                       )}
                     >
@@ -572,8 +588,8 @@ export default function AcademicCourseReviewPage() {
               Confirm course status change
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-3 rounded-2xl border border-brand-navy/15 bg-brand-navy/5 px-4 py-3 text-sm dark:border-brand-lime/20 dark:bg-brand-lime/10">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand-navy dark:text-brand-lime" />
+          <div className="flex gap-3 rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm dark:border-primary/20 dark:bg-primary/10">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <p>
               {saveAs === "published"
                 ? "This course will become available to students once the process completes."
@@ -583,12 +599,17 @@ export default function AcademicCourseReviewPage() {
           <DialogFooter className="gap-2">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
+              className="h-10 rounded-xl px-5"
               onClick={() => setConfirmOpen(false)}
             >
               Cancel
             </Button>
-            <Button type="button" variant="secondary" onClick={startProgressFlow}>
+            <Button
+              type="button"
+              className="h-10 rounded-xl px-5"
+              onClick={startProgressFlow}
+            >
               Complete
             </Button>
           </DialogFooter>
@@ -637,9 +658,13 @@ export default function AcademicCourseReviewPage() {
 
           {!progressDone && !progressError ? (
             <div className="space-y-3 py-2">
-              <Progress value={progress} className="h-2.5" />
-              <p className="text-center text-sm font-semibold tabular-nums text-brand-navy dark:text-brand-lime">
-                {Math.round(progress)}%
+              <Progress
+                value={progress}
+                className="h-2.5"
+                indicatorClassName="bg-primary"
+              />
+              <p className="text-right text-xs font-semibold tabular-nums text-muted-foreground">
+                {Math.round(progress)} %
               </p>
               {!submitting ? (
                 <p className="text-center text-xs text-muted-foreground">
@@ -653,6 +678,7 @@ export default function AcademicCourseReviewPage() {
             <DialogFooter>
               <Button
                 type="button"
+                className="h-10 rounded-xl px-5"
                 onClick={() => {
                   setProgressOpen(false);
                   if (progressDone) router.push("/academic/courses");
@@ -663,7 +689,12 @@ export default function AcademicCourseReviewPage() {
             </DialogFooter>
           ) : !submitting ? (
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={cancelProgress}>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl px-5"
+                onClick={cancelProgress}
+              >
                 Cancel
               </Button>
             </DialogFooter>

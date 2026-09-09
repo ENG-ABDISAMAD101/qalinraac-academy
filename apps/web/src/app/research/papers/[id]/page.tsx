@@ -25,7 +25,7 @@ export default function ResearchPaperDetailPage() {
         </Button>
         <div className="card-soft space-y-4 p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <h1 className="font-display text-2xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-2xl font-bold text-primary dark:text-foreground">
               {p.title}
             </h1>
             <span
@@ -89,7 +89,7 @@ export default function ResearchPaperDetailPage() {
             </Button>
           ) : null}
           {flash ? (
-            <p className="text-sm text-brand-navy dark:text-brand-lime">{flash}</p>
+            <p className="text-sm text-primary">{flash}</p>
           ) : null}
         </div>
       </div>

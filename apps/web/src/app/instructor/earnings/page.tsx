@@ -109,7 +109,7 @@ export default function InstructorEarningsPage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Earnings
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -152,7 +152,7 @@ export default function InstructorEarningsPage() {
               {cards.map((c) => (
                 <div key={c.label} className="card-soft px-5 py-4">
                   <p className="text-xs text-muted-foreground">{c.label}</p>
-                  <p className="mt-1 text-2xl font-bold text-brand-navy dark:text-foreground">
+                  <p className="mt-1 text-2xl font-bold text-primary dark:text-foreground">
                     {c.value}
                   </p>
                 </div>

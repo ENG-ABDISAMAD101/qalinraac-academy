@@ -75,7 +75,7 @@ export function TabsTrigger({
       className={cn(
         "inline-flex items-center justify-center whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-all",
         active
-          ? "bg-background text-brand-navy shadow-sm dark:text-foreground"
+          ? "bg-background text-primary shadow-sm dark:text-foreground"
           : "hover:text-foreground",
         className,
       )}

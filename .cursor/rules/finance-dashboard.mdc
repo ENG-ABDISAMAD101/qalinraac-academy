@@ -1,0 +1,27 @@
+---
+description: Finance role portal — revenue, expenses, withdrawals, shareholders
+alwaysApply: true
+---
+
+# Finance Role
+
+Financial Control Center only: revenue, expenses, instructor payments, withdrawals, shareholders, reports. No students/courses/academic/research/settings.
+
+## Sidebar
+
+Dashboard · Revenue · Expenses · Instructor Payments · Withdrawals · Shareholders · Reports · Notifications · Profile · Logout
+
+## Dashboard
+
+Stats: Total Revenue, Total Expenses, Net Profit, Pending Withdrawals, Total Instructor Payments.
+(Do not show Active Shareholders on dashboard stats.)
+Overviews + Pending Withdrawals + financial summary chart.
+Quick Actions: Add Expense, Add Manual Income, Review Withdrawals, View Reports. Notifications via header only.
+Do not show Recent Revenue / Recent Expenses cards on the dashboard.
+
+## Key rules
+
+- Instructor earnings read-only (auto from purchases)
+- Withdrawals: Approve → Completed; Reject requires reason + notify
+- Shareholders: Super Admin creates; Finance manages distribution view only
+- Manual income & expenses update finance totals

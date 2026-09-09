@@ -85,7 +85,7 @@ export function InstructorShell({ children }: { children: ReactNode }) {
                   className={cn(
                     "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-colors",
                     active
-                      ? "bg-brand-navy text-white shadow-sm dark:bg-brand-lime dark:text-brand-navy"
+                      ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
@@ -125,7 +125,7 @@ export function statusTone(status: string) {
     case "Passed":
     case "Completed":
     case "Paid":
-      return "bg-brand-lime-soft text-brand-navy";
+      return "bg-primary-soft text-primary";
     case "Pending Review":
     case "Pending":
     case "Submitted":

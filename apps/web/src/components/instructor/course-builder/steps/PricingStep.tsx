@@ -11,7 +11,7 @@ export function PricingStep({ draft, setDraft, readOnly }: StepProps) {
   return (
     <div className="card-soft mx-auto max-w-xl space-y-6 p-5 sm:p-6">
       <div>
-        <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+        <h2 className="text-lg font-bold text-primary dark:text-foreground">
           Pricing
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -53,7 +53,7 @@ export function PricingStep({ draft, setDraft, readOnly }: StepProps) {
                 className={cn(
                   "flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition",
                   active
-                    ? "border-brand-navy bg-brand-navy/5 dark:border-brand-lime dark:bg-brand-lime/10"
+                    ? "border-primary bg-primary/5 dark:border-primary dark:bg-primary/10"
                     : "border-border/70 hover:bg-accent/40",
                   readOnly && "pointer-events-none opacity-70",
                 )}
@@ -61,7 +61,7 @@ export function PricingStep({ draft, setDraft, readOnly }: StepProps) {
                 <input
                   type="radio"
                   name="accessDuration"
-                  className="h-4 w-4 accent-[var(--color-brand-navy)]"
+                  className="h-4 w-4 accent-primary"
                   checked={active}
                   disabled={readOnly}
                   onChange={() =>

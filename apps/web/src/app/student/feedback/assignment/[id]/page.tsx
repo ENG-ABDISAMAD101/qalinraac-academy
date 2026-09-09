@@ -233,10 +233,10 @@ export default function FeedbackAssignmentPage() {
         ) : (
           <div className="mx-auto max-w-3xl space-y-5">
             <article className="card-soft space-y-3 p-6 sm:p-8">
-              <p className="text-xs font-bold uppercase tracking-wide text-brand-lime">
+              <p className="text-xs font-bold uppercase tracking-wide text-primary">
                 Assignment
               </p>
-              <h1 className="font-display text-2xl font-bold text-brand-navy dark:text-foreground sm:text-3xl">
+              <h1 className="font-display text-2xl font-bold text-primary dark:text-foreground sm:text-3xl">
                 {title}
               </h1>
               <p className="text-sm leading-relaxed text-muted-foreground">
@@ -311,7 +311,7 @@ export default function FeedbackAssignmentPage() {
                   )}
 
                   <div>
-                    <h3 className="text-sm font-semibold text-brand-navy dark:text-foreground">
+                    <h3 className="text-sm font-semibold text-primary dark:text-foreground">
                       Content notes
                     </h3>
                     <p className="mt-2 whitespace-pre-wrap rounded-2xl bg-canvas px-4 py-3 text-sm text-muted-foreground dark:bg-muted/40">
@@ -322,7 +322,7 @@ export default function FeedbackAssignmentPage() {
 
                 <TabsContent value="discussion" className="space-y-5">
                   <section className="space-y-3">
-                    <h3 className="text-sm font-semibold text-brand-navy dark:text-foreground">
+                    <h3 className="text-sm font-semibold text-primary dark:text-foreground">
                       Mentor Feedback
                     </h3>
                     <div className="flex gap-3 rounded-2xl border border-border/70 bg-canvas/50 p-4 dark:bg-muted/30">
@@ -348,7 +348,7 @@ export default function FeedbackAssignmentPage() {
                   </section>
 
                   <section className="space-y-3">
-                    <h3 className="text-sm font-semibold text-brand-navy dark:text-foreground">
+                    <h3 className="text-sm font-semibold text-primary dark:text-foreground">
                       Discussion
                     </h3>
                     {messages.length === 0 ? (

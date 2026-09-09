@@ -8,7 +8,6 @@ import {
   Plus,
   Search,
   Trash2,
-  UploadCloud,
 } from "lucide-react";
 import { InstructorShell } from "@/components/instructor/InstructorShell";
 import { Button } from "@/components/ui/button";
@@ -17,9 +16,12 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
+  DialogFormActions,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FileDropzone } from "@/components/ui/file-dropzone";
+import { formSelectClassName } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -77,6 +79,8 @@ export default function InstructorResourcesPage() {
   const [lessonId, setLessonId] = useState("");
   const [fileAssetId, setFileAssetId] = useState("");
   const [fileName, setFileName] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
@@ -170,28 +174,44 @@ export default function InstructorResourcesPage() {
     setLessonId("");
     setFileAssetId("");
     setFileName("");
+    setSelectedFile(null);
+    setUploadProgress(null);
     setFormError("");
     setModules([]);
   }
 
-  async function onUploadFile(file: File | undefined) {
+  async function onUploadFile(file: File | null) {
+    setSelectedFile(file);
+    setFileAssetId("");
+    setFileName("");
+    setUploadProgress(file ? 0 : null);
     if (!file) return;
     setUploading(true);
     setFormError("");
+    const tick = window.setInterval(() => {
+      setUploadProgress((p) =>
+        p == null || p >= 90 ? p : Math.min(90, p + 8),
+      );
+    }, 120);
     try {
       const uploaded = await uploadFileRequest(file);
       if (!uploaded.id) {
         setFormError("Upload succeeded but file id is missing.");
+        setUploadProgress(null);
         return;
       }
       setFileAssetId(uploaded.id);
       setFileName(uploaded.originalName || file.name);
+      setUploadProgress(100);
       if (!title.trim()) {
         setTitle(file.name.replace(/\.[^.]+$/, ""));
       }
     } catch (err) {
       setFormError(getApiErrorMessage(err, "Could not upload the file."));
+      setUploadProgress(null);
+      setSelectedFile(null);
     } finally {
+      window.clearInterval(tick);
       setUploading(false);
     }
   }
@@ -252,7 +272,7 @@ export default function InstructorResourcesPage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Resources
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -304,7 +324,7 @@ export default function InstructorResourcesPage() {
             {items.map((resource) => (
               <article key={resource.id} className="card-soft flex flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <span className="rounded-full bg-brand-navy/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-navy dark:bg-brand-lime/15 dark:text-brand-lime">
+                  <span className="rounded-full bg-primary/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-primary dark:bg-primary/15 dark:text-primary">
                     {typeBadge(resource.mimeType, resource.originalName)}
                   </span>
                   <FileText className="h-4 w-4 text-muted-foreground" />
@@ -372,7 +392,7 @@ export default function InstructorResourcesPage() {
           if (!open) resetForm();
         }}
       >
-        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-[480px] overflow-y-auto gap-5">
           <DialogHeader>
             <DialogTitle>Upload resource</DialogTitle>
             <DialogDescription>
@@ -380,14 +400,33 @@ export default function InstructorResourcesPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-5">
+            <FileDropzone
+              id="res-file"
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.csv,image/*"
+              formatsLabel="PDF, DOCX, PPTX, XLSX, ZIP"
+              disabled={uploading || saving}
+              file={selectedFile}
+              progress={
+                selectedFile
+                  ? uploadProgress ?? (fileAssetId ? 100 : null)
+                  : null
+              }
+              onFileChange={(next) => void onUploadFile(next)}
+            />
+            {fileAssetId && !selectedFile ? (
+              <p className="text-xs text-muted-foreground">
+                Uploaded: {fileName}
+              </p>
+            ) : null}
+
             <div className="space-y-2">
               <Label htmlFor="res-course">Course</Label>
               <select
                 id="res-course"
                 value={courseId}
                 onChange={(e) => setCourseId(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-border bg-background px-4 text-sm"
+                className={formSelectClassName}
                 required
               >
                 <option value="">Select course</option>
@@ -405,7 +444,7 @@ export default function InstructorResourcesPage() {
                 id="res-module"
                 value={moduleId}
                 onChange={(e) => setModuleId(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-border bg-background px-4 text-sm"
+                className={formSelectClassName}
                 required
                 disabled={!courseId || curriculumLoading}
               >
@@ -428,7 +467,7 @@ export default function InstructorResourcesPage() {
                 id="res-lesson"
                 value={lessonId}
                 onChange={(e) => setLessonId(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-border bg-background px-4 text-sm"
+                className={formSelectClassName}
                 required
                 disabled={!moduleId}
               >
@@ -449,6 +488,7 @@ export default function InstructorResourcesPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={160}
                 required
+                className="rounded-xl"
               />
             </div>
 
@@ -459,72 +499,22 @@ export default function InstructorResourcesPage() {
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                className="rounded-xl"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="res-file">Resource file</Label>
-              <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-4 py-5 text-center">
-                {uploading ? (
-                  <Spinner label="Uploading file" />
-                ) : fileAssetId ? (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-foreground">
-                      {fileName}
-                    </p>
-                    <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-brand-navy dark:text-brand-lime">
-                      <UploadCloud className="h-3.5 w-3.5" />
-                      Replace file
-                      <input
-                        id="res-file"
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.csv,image/*"
-                        onChange={(e) =>
-                          void onUploadFile(e.target.files?.[0])
-                        }
-                      />
-                    </label>
-                  </div>
-                ) : (
-                  <label className="inline-flex cursor-pointer flex-col items-center gap-2">
-                    <UploadCloud className="h-6 w-6 text-brand-navy dark:text-brand-lime" />
-                    <span className="text-sm font-medium text-foreground">
-                      Choose PDF, DOCX, PPTX, XLSX, or ZIP
-                    </span>
-                    <input
-                      id="res-file"
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.csv,image/*"
-                      onChange={(e) => void onUploadFile(e.target.files?.[0])}
-                    />
-                  </label>
-                )}
-              </div>
             </div>
 
             {formError ? (
               <p className="text-sm text-destructive">{formError}</p>
             ) : null}
 
-            <DialogFooter className="gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setFormOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={saving || uploading}>
-                {saving ? (
-                  <Spinner className="sm on-primary" label="Saving resource" />
-                ) : (
-                  <UploadCloud className="h-4 w-4" />
-                )}
-                Save resource
-              </Button>
-            </DialogFooter>
+            <DialogFormActions
+              helpHref="/instructor/support"
+              cancelLabel="Cancel"
+              confirmLabel="Import"
+              confirmLoading={saving}
+              confirmDisabled={uploading || !fileAssetId}
+              onCancel={() => setFormOpen(false)}
+            />
           </form>
         </DialogContent>
       </Dialog>
@@ -545,7 +535,8 @@ export default function InstructorResourcesPage() {
           <DialogFooter className="gap-2">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
+              className="h-10 rounded-xl px-5"
               onClick={() => setPendingDelete(null)}
             >
               Cancel
@@ -553,6 +544,7 @@ export default function InstructorResourcesPage() {
             <Button
               type="button"
               variant="destructive"
+              className="h-10 rounded-xl px-5"
               disabled={deleting}
               onClick={() => void confirmDelete()}
             >

@@ -100,7 +100,7 @@ export default function InstructorDashboardPage() {
     <InstructorShell>
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Welcome, {name.split(" ")[0]}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -124,7 +124,7 @@ export default function InstructorDashboardPage() {
                   <p className="text-xs font-medium text-muted-foreground">
                     {s.label}
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-brand-navy dark:text-foreground">
+                  <p className="mt-1 text-2xl font-bold text-primary dark:text-foreground">
                     {s.value}
                   </p>
                 </div>
@@ -132,7 +132,7 @@ export default function InstructorDashboardPage() {
             </div>
 
             <section>
-              <h2 className="mb-4 text-lg font-bold text-brand-navy dark:text-foreground">
+              <h2 className="mb-4 text-lg font-bold text-primary dark:text-foreground">
                 Quick Actions
               </h2>
               <div className="flex flex-wrap gap-2">
@@ -183,7 +183,7 @@ export default function InstructorDashboardPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 text-lg font-bold text-brand-navy dark:text-foreground">
+              <h2 className="mb-4 text-lg font-bold text-primary dark:text-foreground">
                 Recent Courses
               </h2>
               {recent.length === 0 ? (
@@ -210,7 +210,7 @@ export default function InstructorDashboardPage() {
                               unoptimized
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center bg-brand-navy/5 text-sm font-semibold text-brand-navy">
+                            <div className="flex h-full items-center justify-center bg-primary/5 text-sm font-semibold text-primary">
                               {course.title}
                             </div>
                           )}

@@ -93,7 +93,7 @@ export default function ResourcesPage() {
       <div className="space-y-6 px-6 py-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Resources
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -127,7 +127,7 @@ export default function ResourcesPage() {
           </p>
         ) : list.length === 0 ? (
           <div className="card-soft px-6 py-14 text-center">
-            <h2 className="font-display text-xl font-bold text-brand-navy dark:text-foreground">
+            <h2 className="font-display text-xl font-bold text-primary dark:text-foreground">
               No resources available
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
@@ -147,7 +147,7 @@ export default function ResourcesPage() {
                     onClick={() => setOpenId(open ? null : r.id)}
                     className="w-full p-5 text-left transition-colors hover:bg-canvas/50 dark:hover:bg-muted/20"
                   >
-                    <p className="text-xs font-bold uppercase tracking-wide text-brand-lime">
+                    <p className="text-xs font-bold uppercase tracking-wide text-primary">
                       {badge}
                     </p>
                     <h2 className="mt-2 text-lg font-bold text-ink dark:text-foreground">

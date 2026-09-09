@@ -77,7 +77,7 @@ export default function SuperAdminDashboardPage() {
       <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               System Control Center
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -104,7 +104,7 @@ export default function SuperAdminDashboardPage() {
               <p className="text-[11px] font-medium text-muted-foreground">
                 {s.label}
               </p>
-              <p className="mt-1 text-xl font-bold text-brand-navy dark:text-foreground">
+              <p className="mt-1 text-xl font-bold text-primary dark:text-foreground">
                 {s.value}
               </p>
             </div>
@@ -124,7 +124,7 @@ export default function SuperAdminDashboardPage() {
                   <Line
                     type="monotone"
                     dataKey="users"
-                    stroke="#002B5C"
+                    stroke="#111827"
                     strokeWidth={2}
                     dot={false}
                   />
@@ -142,7 +142,7 @@ export default function SuperAdminDashboardPage() {
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="revenue" fill="#70C100" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#6B7280" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

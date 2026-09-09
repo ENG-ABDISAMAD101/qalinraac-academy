@@ -82,7 +82,7 @@ export function AcademicShell({ children }: { children: ReactNode }) {
                   className={cn(
                     "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-colors",
                     active
-                      ? "bg-brand-navy text-white shadow-sm dark:bg-brand-lime dark:text-brand-navy"
+                      ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
@@ -123,7 +123,7 @@ export function academicStatusTone(status: string) {
     case "Active":
     case "Ready":
     case "Completed":
-      return "bg-brand-lime-soft text-brand-navy";
+      return "bg-primary-soft text-primary";
     case "Pending Review":
     case "Pending":
       return "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200";

@@ -1,0 +1,30 @@
+---
+description: Instructor role portal — scope, onboarding, courses, earnings
+alwaysApply: true
+---
+
+# Instructor Role
+
+Scope: own courses/students/earnings only. No system admin. Super Admin promotes Student → Instructor (same account). Roles not self-changeable.
+
+## Onboarding (first login, blocking)
+
+Welcome → Course Management → Agreement (view/download) → Finish (`onboardingCompleted` + `onboardingCompletedAt`). Super Admin can reset.
+
+## Sidebar
+
+Dashboard · My Courses · Students · Assignments · Quizzes · Resources · Earnings · Withdrawals · Agreement · Technical Support · Notifications · Profile · Logout
+
+## Dashboard
+
+Sticky header: search, notifications (unread badge), theme, profile. **No notification card on dashboard.**
+Stats: Total/Published/Pending courses, Students, Earnings, Available Balance, Pending Withdrawal. Rejected ≠ published.
+Recent courses: View only. Quick Actions: Create Course (if under `courseLimit`), View Courses/Assignments/Earnings, Request Withdrawal.
+
+## Course statuses
+
+Draft (full edit) · Pending Review (view) · Published (view + update request) · Rejected (edit/resubmit, no slot) · Archived (history). Default `courseLimit` = 1.
+
+## Ownership
+
+All resources carry `instructorId`. Server must validate ownership on every API call.

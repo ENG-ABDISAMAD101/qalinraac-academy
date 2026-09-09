@@ -14,7 +14,7 @@ export default function AdminNotificationsPage() {
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Notifications{" "}
               <span className="text-muted-foreground">{items.length}</span>
             </h1>
@@ -46,7 +46,7 @@ export default function AdminNotificationsPage() {
                 key={n.id}
                 className={cn(
                   "card-soft flex flex-wrap items-start justify-between gap-4 p-5",
-                  !n.read && "ring-1 ring-brand-lime/40",
+                  !n.read && "ring-1 ring-primary/40",
                 )}
               >
                 <div className="flex gap-3">

@@ -14,6 +14,7 @@ import {
   rejectCertSchema,
   rejectCourseSchema,
   setCourseStatusSchema,
+  replyDiscussionSchema,
   updateAgreementSchema,
   updateProfileSchema,
 } from "./academic.service.js";
@@ -62,6 +63,12 @@ academicRouter.post(
   requirePermission("courses:publish"),
   validate(setCourseStatusSchema),
   asyncHandler(controller.setCourseStatus),
+);
+academicRouter.post(
+  "/courses/:id/discussions",
+  requirePermission("courses:read"),
+  validate(replyDiscussionSchema),
+  asyncHandler(controller.replyDiscussion),
 );
 
 academicRouter.get("/activations", asyncHandler(controller.listActivations));

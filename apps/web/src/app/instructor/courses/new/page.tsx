@@ -66,11 +66,11 @@ export default function CreateCoursePage() {
 
         <div className="card-soft space-y-6 p-6 sm:p-8">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-brand-lime-soft px-3 py-1 text-xs font-bold text-brand-navy">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
               <Sparkles className="h-3.5 w-3.5" />
               7-step course builder
             </span>
-            <h1 className="mt-4 font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="mt-4 font-display text-3xl font-bold text-primary dark:text-foreground">
               Create a new course
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -89,7 +89,7 @@ export default function CreateCoursePage() {
                 key={s.step}
                 className="flex items-center gap-3 rounded-2xl border border-border/70 px-4 py-2.5"
               >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-navy/5 text-[11px] font-bold text-brand-navy dark:bg-brand-lime/10 dark:text-brand-lime">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/5 text-[11px] font-bold text-primary dark:bg-primary/10 dark:text-primary">
                   {s.step}
                 </span>
                 <span className="min-w-0">
@@ -134,7 +134,7 @@ export default function CreateCoursePage() {
             const Icon = item.icon;
             return (
               <div key={item.title} className="card-soft space-y-2 p-5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-navy/5 text-brand-navy dark:bg-brand-lime/10 dark:text-brand-lime">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/5 text-primary dark:bg-primary/10 dark:text-primary">
                   <Icon className="h-4 w-4" />
                 </span>
                 <p className="text-sm font-bold text-foreground">{item.title}</p>

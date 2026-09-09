@@ -5,8 +5,8 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 
 const LOGO_PATH = "/qalinraac-acadmy-logo.jpeg";
-const BRAND_NAVY: [number, number, number] = [0, 43, 92];
-const BRAND_LIME: [number, number, number] = [112, 193, 0];
+const BRAND_NAVY: [number, number, number] = [17, 24, 39];
+const BRAND_LIME: [number, number, number] = [107, 114, 128];
 
 async function loadLogoDataUrl(): Promise<string | null> {
   try {

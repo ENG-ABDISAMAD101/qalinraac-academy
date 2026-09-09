@@ -22,7 +22,7 @@ export default function SuperAdminSupportPage() {
     <SuperAdminShell>
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Support
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -30,7 +30,7 @@ export default function SuperAdminSupportPage() {
           </p>
         </div>
         {flash ? (
-          <p className="text-sm text-brand-navy dark:text-brand-lime">{flash}</p>
+          <p className="text-sm text-primary">{flash}</p>
         ) : null}
         <ScrollTable minWidthClassName="min-w-[56rem]">
           <ScrollTableHead>

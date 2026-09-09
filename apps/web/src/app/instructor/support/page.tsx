@@ -1,14 +1,13 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Paperclip, X } from "lucide-react";
 import {
   InstructorShell,
   statusTone,
 } from "@/components/instructor/InstructorShell";
-import { Button } from "@/components/ui/button";
+import { FileDropzone } from "@/components/ui/file-dropzone";
+import { FormActions, FormCard, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -53,6 +52,7 @@ export default function InstructorSupportPage() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
@@ -87,8 +87,19 @@ export default function InstructorSupportPage() {
     try {
       const attachmentIds: string[] = [];
       if (file) {
-        const uploaded = await uploadFileRequest(file);
-        attachmentIds.push(uploaded.id);
+        setUploadProgress(15);
+        const tick = window.setInterval(() => {
+          setUploadProgress((p) =>
+            p == null || p >= 90 ? p : Math.min(90, p + 8),
+          );
+        }, 100);
+        try {
+          const uploaded = await uploadFileRequest(file);
+          attachmentIds.push(uploaded.id);
+          setUploadProgress(100);
+        } finally {
+          window.clearInterval(tick);
+        }
       }
       await instructorCreateSupportRequest({
         subject: subject.trim(),
@@ -98,10 +109,12 @@ export default function InstructorSupportPage() {
       setSubject("");
       setMessage("");
       setFile(null);
+      setUploadProgress(null);
       setFormSuccess("Your support ticket was submitted successfully.");
       await loadTickets();
     } catch (err) {
       setFormError(getApiErrorMessage(err, "Could not create ticket."));
+      setUploadProgress(null);
     } finally {
       setSubmitting(false);
     }
@@ -111,99 +124,80 @@ export default function InstructorSupportPage() {
     <InstructorShell>
       <div className="grid gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Technical Support
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Create tickets, upload screenshots, and track replies
           </p>
 
-          <form
-            onSubmit={onSubmit}
-            className="mt-6 card-soft space-y-5 p-5 sm:p-6"
-          >
-            <div className="space-y-2">
-              <Label htmlFor="subject">Subject</Label>
-              <Input
-                id="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Brief summary of the issue"
-                required
+          <form onSubmit={onSubmit} className="mt-6">
+            <FormCard className="space-y-5">
+              <FormField label="Subject" htmlFor="subject">
+                <Input
+                  id="subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Brief summary of the issue"
+                  required
+                />
+              </FormField>
+
+              <FormField label="Message" htmlFor="message">
+                <Textarea
+                  id="message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Describe the problem in detail…"
+                  required
+                  rows={8}
+                  className="min-h-[180px] leading-relaxed"
+                />
+              </FormField>
+
+              <FormField label="Attachment (optional)">
+                <FileDropzone
+                  id="instructor-support-file"
+                  accept="image/*,.pdf,.png,.jpg,.jpeg,.webp"
+                  formatsLabel="PNG, JPG, WEBP, PDF"
+                  disabled={submitting}
+                  file={file}
+                  progress={file ? uploadProgress : null}
+                  onFileChange={(next) => {
+                    setFile(next);
+                    setUploadProgress(next ? 0 : null);
+                  }}
+                />
+              </FormField>
+
+              {formError ? (
+                <p className="text-sm text-destructive">{formError}</p>
+              ) : null}
+              {formSuccess ? (
+                <p className="rounded-xl bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
+                  {formSuccess}
+                </p>
+              ) : null}
+
+              <FormActions
+                helpHref="/instructor/support"
+                confirmLabel="Send ticket"
+                confirmLoading={submitting}
+                onCancel={() => {
+                  setSubject("");
+                  setMessage("");
+                  setFile(null);
+                  setUploadProgress(null);
+                  setFormError("");
+                  setFormSuccess("");
+                }}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="message">Message</Label>
-              <Textarea
-                id="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Describe the problem in detail…"
-                required
-                rows={10}
-                className="min-h-[220px] font-normal leading-relaxed"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Attachment (optional)</Label>
-              <div className="rounded-2xl border border-dashed border-border bg-canvas/50 px-4 py-5 dark:bg-muted/20">
-                {file ? (
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <Paperclip className="h-4 w-4 shrink-0 text-brand-navy dark:text-brand-lime" />
-                      <p className="truncate text-sm font-medium text-ink dark:text-foreground">
-                        {file.name}
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Remove file"
-                      onClick={() => setFile(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <label className="flex cursor-pointer flex-col items-center gap-2 text-center">
-                    <Paperclip className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-medium text-brand-navy dark:text-foreground">
-                      Upload image or file
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Screenshots help us resolve issues faster
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*,.pdf,.png,.jpg,.jpeg,.webp"
-                      className="hidden"
-                      onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                    />
-                  </label>
-                )}
-              </div>
-            </div>
-
-            {formError ? (
-              <p className="text-sm text-destructive">{formError}</p>
-            ) : null}
-            {formSuccess ? (
-              <p className="rounded-2xl bg-brand-lime-soft px-4 py-3 text-sm font-medium text-brand-navy">
-                {formSuccess}
-              </p>
-            ) : null}
-
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Sending…" : "Send ticket"}
-            </Button>
+            </FormCard>
           </form>
         </div>
 
         <div>
-          <h2 className="mb-4 text-lg font-bold text-brand-navy dark:text-foreground">
+          <h2 className="mb-4 text-lg font-bold text-primary dark:text-foreground">
             Ticket History
           </h2>
 
@@ -212,7 +206,7 @@ export default function InstructorSupportPage() {
               <Spinner label="Loading tickets" />
             </div>
           ) : listError ? (
-            <p className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               {listError}
             </p>
           ) : tickets.length === 0 ? (

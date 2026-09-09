@@ -1,0 +1,20 @@
+---
+description: Prefer shadcn layout primitives for app shells and page chrome
+alwaysApply: true
+---
+
+# Shadcn Layouts
+
+When building or refactoring **layouts** (portal shells, sidebars, headers, page chrome, responsive nav), use **shadcn/ui layout primitives** from this project’s `components/ui` (and add missing ones via shadcn rather than inventing custom layout systems).
+
+## Prefer
+
+- shadcn **Sidebar**, **Sheet**, **Separator**, **DropdownMenu**, **Dialog**, and related layout/nav patterns
+- Existing shared shells/headers when extending a role portal
+
+## Avoid
+
+- One-off layout frameworks or duplicate sidebar/header markup that bypasses shadcn patterns
+- Replacing an established shell without migrating toward shadcn layout components
+
+Brand colors and role dashboard rules still apply on top of shadcn structure.

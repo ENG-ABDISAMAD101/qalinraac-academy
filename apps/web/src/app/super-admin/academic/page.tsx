@@ -139,7 +139,7 @@ export default function SuperAdminAcademicPage() {
     <SuperAdminShell>
       <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Academic Control
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -148,7 +148,7 @@ export default function SuperAdminAcademicPage() {
         </div>
 
         {flash ? (
-          <p className="text-sm font-medium text-brand-navy dark:text-brand-lime">
+          <p className="text-sm font-medium text-primary">
             {flash}
           </p>
         ) : null}
@@ -193,7 +193,7 @@ export default function SuperAdminAcademicPage() {
                     </Button>
                     <Button
                       size="sm"
-                      className="bg-brand-lime text-brand-navy hover:bg-brand-lime/90"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
                       disabled={busyId === a.id}
                       onClick={() => void approveActivation(a)}
                     >
@@ -246,7 +246,7 @@ export default function SuperAdminAcademicPage() {
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        className="bg-brand-lime text-brand-navy hover:bg-brand-lime/90"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
                         disabled={busyId === id}
                         onClick={() => void approve(c)}
                       >

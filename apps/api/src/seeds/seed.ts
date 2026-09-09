@@ -7,6 +7,7 @@ import { Enrollment } from "../models/Enrollment.js";
 import { Lesson } from "../models/Lesson.js";
 import { Module } from "../models/Module.js";
 import { InstructorAgreement } from "../models/InstructorAgreement.js";
+import { Shareholder } from "../models/Shareholder.js";
 import { User } from "../models/User.js";
 
 export async function seedDatabase() {
@@ -176,6 +177,31 @@ export async function seedDatabase() {
       createdBy: admin._id,
     });
     logger.info("Seeded instructor agreement");
+  }
+
+  const shareholderCount = await Shareholder.countDocuments();
+  if (shareholderCount === 0) {
+    await Shareholder.create([
+      {
+        fullName: "Amina Hassan",
+        email: "amina.share@qalinraac.local",
+        phone: "+252 61 111 2222",
+        sharePercent: 25,
+        investmentCents: 5000000,
+        status: "active",
+        createdBy: admin._id,
+      },
+      {
+        fullName: "Omar Guled",
+        email: "omar.share@qalinraac.local",
+        phone: "+252 61 333 4444",
+        sharePercent: 15,
+        investmentCents: 2500000,
+        status: "active",
+        createdBy: admin._id,
+      },
+    ]);
+    logger.info("Seeded shareholders");
   }
 
   return { admin, instructor, student, finance, course };

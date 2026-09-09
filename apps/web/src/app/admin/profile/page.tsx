@@ -25,7 +25,7 @@ export default function AdminProfilePage() {
     <AdminShell>
       <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Profile
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -88,7 +88,7 @@ export default function AdminProfilePage() {
           </div>
           <Button type="submit">Save changes</Button>
           {saved ? (
-            <p className="text-sm text-brand-navy dark:text-brand-lime">
+            <p className="text-sm text-primary">
               Profile saved (demo).
             </p>
           ) : null}

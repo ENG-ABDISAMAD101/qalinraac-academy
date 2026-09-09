@@ -88,7 +88,7 @@ export function AcademicNotificationsMenu() {
         )}
       >
         <DropdownMenuLabel className="flex items-center justify-between gap-3 px-4 py-3 font-normal">
-          <p className="text-sm font-semibold text-brand-navy dark:text-brand-lime">
+          <p className="text-sm font-semibold text-primary">
             Notifications{" "}
             <span className="text-muted-foreground">{items.length}</span>
           </p>
@@ -98,7 +98,7 @@ export function AcademicNotificationsMenu() {
               e.preventDefault();
               void markAllRead();
             }}
-            className="rounded-md px-1 text-xs font-semibold text-brand-lime transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-md px-1 text-xs font-semibold text-primary transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Mark as read
           </button>
@@ -122,10 +122,10 @@ export function AcademicNotificationsMenu() {
                   onClick={() => void markOneRead(n.id)}
                   className={cn(
                     "flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-accent",
-                    !n.read && "bg-brand-lime-soft/40 dark:bg-secondary/50",
+                    !n.read && "bg-primary-soft/40 dark:bg-secondary/50",
                   )}
                 >
-                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold uppercase text-brand-navy dark:text-brand-lime">
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold uppercase text-primary">
                     {n.type.slice(0, 2)}
                   </span>
                   <div className="min-w-0 flex-1">
@@ -138,7 +138,7 @@ export function AcademicNotificationsMenu() {
                     </p>
                   </div>
                   {!n.read ? (
-                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand-lime" />
+                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
                   ) : null}
                 </button>
               </li>
@@ -149,7 +149,7 @@ export function AcademicNotificationsMenu() {
         <div className="border-t border-border px-4 py-3">
           <Link
             href="/academic/notifications"
-            className="text-xs font-semibold text-brand-navy underline-offset-4 hover:underline dark:text-brand-lime"
+            className="text-xs font-semibold text-primary underline-offset-4 hover:underline dark:text-primary"
             onClick={() => setOpen(false)}
           >
             View all notifications

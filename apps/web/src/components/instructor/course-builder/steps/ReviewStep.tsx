@@ -91,7 +91,7 @@ export function ReviewStep({
         <div className="card-soft p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+              <h2 className="text-lg font-bold text-primary dark:text-foreground">
                 Course Preview
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -140,7 +140,7 @@ export function ReviewStep({
                         className={cn(
                           "flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
                           done
-                            ? "bg-brand-lime text-brand-navy"
+                            ? "bg-primary text-primary-foreground"
                             : "bg-destructive/15 text-destructive",
                         )}
                       >
@@ -169,12 +169,12 @@ export function ReviewStep({
               </ul>
 
               <div className="mt-5 rounded-2xl border border-border/70 bg-muted/20 px-4 py-4">
-                <p className="text-sm font-bold text-brand-navy dark:text-foreground">
+                <p className="text-sm font-bold text-primary dark:text-foreground">
                   Course completeness: {completeness}%
                 </p>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full bg-brand-lime transition-all"
+                    className="h-full rounded-full bg-primary transition-all"
                     style={{
                       width: `${completeness}%`,
                     }}
@@ -204,11 +204,11 @@ export function ReviewStep({
                   </ul>
                 </div>
               ) : status !== "pending_review" ? (
-                <div className="mt-5 rounded-2xl bg-brand-lime-soft p-4">
-                  <p className="text-sm font-bold text-brand-navy">
+                <div className="mt-5 rounded-2xl bg-primary-soft p-4">
+                  <p className="text-sm font-bold text-primary">
                     This course is ready to mark as complete.
                   </p>
-                  <p className="mt-1 text-sm text-brand-navy/80">
+                  <p className="mt-1 text-sm text-primary/80">
                     {status === "published"
                       ? "Use Mark Course as Complete in the header to send updates back for Academic review."
                       : "Use Mark Course as Complete in the header or footer when you are happy with the content. Editing locks while review is in progress."}
@@ -228,7 +228,7 @@ export function ReviewStep({
                     className="rounded-2xl border border-border/70 px-4 py-3"
                   >
                     <p className="text-xs text-muted-foreground">{stat.label}</p>
-                    <p className="mt-0.5 text-xl font-bold text-brand-navy dark:text-foreground">
+                    <p className="mt-0.5 text-xl font-bold text-primary dark:text-foreground">
                       {stat.value}
                     </p>
                   </div>
@@ -269,7 +269,7 @@ export function ReviewStep({
           )}
         </div>
         <div>
-          <h3 className="font-display text-lg font-bold text-brand-navy dark:text-foreground">
+          <h3 className="font-display text-lg font-bold text-primary dark:text-foreground">
             {draft.title || "Untitled Course"}
           </h3>
         </div>

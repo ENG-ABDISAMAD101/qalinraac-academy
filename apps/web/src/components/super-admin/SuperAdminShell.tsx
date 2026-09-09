@@ -157,7 +157,7 @@ export function SuperAdminShell({ children }: { children: ReactNode }) {
                         className={cn(
                           "flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-medium transition-colors",
                           active
-                            ? "bg-brand-navy text-white shadow-sm dark:bg-brand-lime dark:text-brand-navy"
+                            ? "bg-primary text-primary-foreground shadow-sm"
                             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                         )}
                       >
@@ -202,7 +202,7 @@ export function saStatusTone(status: string) {
     case "Ready":
     case "Signed":
     case "Completed":
-      return "bg-brand-lime-soft text-brand-navy";
+      return "bg-primary-soft text-primary";
     case "Pending":
     case "Pending Review":
     case "In Progress":

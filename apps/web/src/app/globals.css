@@ -3,10 +3,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-brand-navy: #002b5c;
-  --color-brand-navy-soft: #0a3a73;
-  --color-brand-lime: #70c100;
-  --color-brand-lime-soft: #e8f7c8;
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-navy-soft: var(--brand-navy-soft);
+  --color-brand-lime: var(--brand-lime);
+  --color-brand-lime-soft: var(--brand-lime-soft);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -22,6 +22,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-danger: var(--destructive);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -29,6 +31,7 @@
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-line: var(--line);
+  --color-text-muted: var(--text-muted);
   --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
   --radius-sm: calc(var(--radius) - 4px);
@@ -40,53 +43,71 @@
 
 :root {
   --radius: 0.75rem;
+  /* Light — palette only */
+  --canvas: #f7f8fa;
   --background: #ffffff;
-  --foreground: #1a2332;
+  --foreground: #111827;
   --card: #ffffff;
-  --card-foreground: #1a2332;
+  --card-foreground: #111827;
   --popover: #ffffff;
-  --popover-foreground: #1a2332;
-  --primary: #002b5c;
+  --popover-foreground: #111827;
+  --primary: #111827;
   --primary-foreground: #ffffff;
-  --secondary: #e8f7c8;
-  --secondary-foreground: #002b5c;
-  --muted: #f0f2f5;
+  --secondary: #f7f8fa;
+  --secondary-foreground: #111827;
+  --muted: #f7f8fa;
   --muted-foreground: #6b7280;
-  --accent: #f0f2f5;
-  --accent-foreground: #002b5c;
-  --destructive: #dc2626;
+  --text-muted: #9ca3af;
+  --accent: #f7f8fa;
+  --accent-foreground: #111827;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
   --border: #e5e7eb;
   --input: #e5e7eb;
-  --ring: #002b5c;
-  --canvas: #f0f2f5;
+  --ring: #111827;
   --surface: #ffffff;
-  --ink: #1a2332;
+  --ink: #111827;
   --line: #e5e7eb;
+  /* Legacy aliases → palette */
+  --brand-navy: #111827;
+  --brand-navy-soft: #6b7280;
+  --brand-lime: #111827;
+  --brand-lime-soft: #f7f8fa;
 }
 
 .dark {
-  --background: #0b1220;
-  --foreground: #f3f4f6;
-  --card: #121a2b;
-  --card-foreground: #f3f4f6;
-  --popover: #121a2b;
-  --popover-foreground: #f3f4f6;
-  --primary: #70c100;
-  --primary-foreground: #002b5c;
-  --secondary: #1a2740;
-  --secondary-foreground: #e8f7c8;
-  --muted: #1a2740;
-  --muted-foreground: #9ca3af;
-  --accent: #1a2740;
-  --accent-foreground: #f3f4f6;
+  /* Dark — Background/Sidebar #111827 · Cards #1E293B · Border #334155
+     text: primary #F8FAFC · secondary #CBD5E1 · muted #94A3B8 */
+  --canvas: #111827;
+  --background: #111827;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  --primary: #f8fafc;
+  --primary-foreground: #111827;
+  /* Inset wells / chips (darker than card, like sidebar) */
+  --secondary: #111827;
+  --secondary-foreground: #cbd5e1;
+  --muted: #111827;
+  --muted-foreground: #94a3b8;
+  --text-muted: #94a3b8;
+  --accent: #111827;
+  --accent-foreground: #f8fafc;
   --destructive: #ef4444;
-  --border: #243044;
-  --input: #243044;
-  --ring: #70c100;
-  --canvas: #0b1220;
-  --surface: #121a2b;
-  --ink: #f3f4f6;
-  --line: #243044;
+  --destructive-foreground: #ffffff;
+  --border: #334155;
+  --input: #334155;
+  --ring: #f8fafc;
+  --surface: #1e293b;
+  --ink: #f8fafc;
+  --line: #334155;
+  /* Legacy aliases → palette */
+  --brand-navy: #f8fafc;
+  --brand-navy-soft: #cbd5e1;
+  --brand-lime: #f8fafc;
+  --brand-lime-soft: #1e293b;
 }
 
 @layer base {
@@ -105,13 +126,13 @@
 
 @layer utilities {
   .card-soft {
-    @apply rounded-[var(--radius-card)] bg-card text-card-foreground shadow-[0_8px_30px_rgba(0,43,92,0.06)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)];
+    @apply rounded-[var(--radius-card)] border border-border bg-card text-card-foreground shadow-[0_8px_30px_rgba(17,24,39,0.05)] dark:shadow-none;
   }
 
-  /* Floating pill scrollbar — light gray thumb, no track */
+  /* Floating pill scrollbar — palette only */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #c5cad3 transparent;
+    scrollbar-color: #9ca3af transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -124,14 +145,14 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #c5cad3;
+    background-color: #9ca3af;
     border-radius: 9999px;
     border: 1px solid transparent;
     background-clip: padding-box;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: #aeb4bf;
+    background-color: #6b7280;
   }
 
   .scrollbar-thin::-webkit-scrollbar-corner {
@@ -139,15 +160,15 @@
   }
 
   .dark .scrollbar-thin {
-    scrollbar-color: #4b5563 transparent;
+    scrollbar-color: #94a3b8 transparent;
   }
 
   .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #4b5563;
+    background-color: #94a3b8;
   }
 
   .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: #6b7280;
+    background-color: #cbd5e1;
   }
 
   .brand-notif-spin {
@@ -177,13 +198,13 @@
 }
 
 .notif-bell-icon {
-  color: var(--foreground, #1a2332);
+  color: var(--foreground, #111827);
   transition: 0.2s;
   display: block;
 }
 
 .dark .notif-bell-icon {
-  color: #ffffff;
+  color: #f8fafc;
 }
 
 .notif-bell-point {
@@ -193,7 +214,7 @@
   min-width: 16px;
   height: 16px;
   padding-inline: 3px;
-  background-color: #002b5c;
+  background-color: #111827;
   border-radius: 25px;
   display: flex;
   align-items: center;
@@ -201,15 +222,23 @@
   z-index: 1;
 }
 
+.dark .notif-bell-point {
+  background-color: #f8fafc;
+}
+
 .notif-bell-point::before {
   content: "";
   position: absolute;
   width: 1px;
   height: 1px;
-  background-color: #002b5c;
+  background-color: #111827;
   border-radius: 25px;
   animation: notif-bell-loop 1s 0s infinite;
   pointer-events: none;
+}
+
+.dark .notif-bell-point::before {
+  background-color: #f8fafc;
 }
 
 .notif-bell-count {
@@ -219,6 +248,10 @@
   font-weight: 800;
   line-height: 1;
   color: #ffffff;
+}
+
+.dark .notif-bell-count {
+  color: #111827;
 }
 
 @keyframes brand-notif-spin {
@@ -234,12 +267,29 @@
 
 @keyframes notif-bell-loop {
   0% {
-    background-color: #002b5c;
+    background-color: #111827;
     width: 1px;
     height: 1px;
   }
   100% {
-    background-color: rgba(0, 43, 92, 0);
+    background-color: rgba(17, 24, 39, 0);
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.dark .notif-bell-point::before {
+  animation-name: notif-bell-loop-dark;
+}
+
+@keyframes notif-bell-loop-dark {
+  0% {
+    background-color: #f8fafc;
+    width: 1px;
+    height: 1px;
+  }
+  100% {
+    background-color: rgba(248, 250, 252, 0);
     width: 30px;
     height: 30px;
   }
@@ -263,7 +313,6 @@
   margin: auto;
 }
 
-/* Accessible label — never paint on screen (don't rely on Tailwind sr-only). */
 .spinner-label {
   position: absolute;
   width: 1px;
@@ -339,7 +388,7 @@
 
 @keyframes spinner-fade9234 {
   0% {
-    background-color: #002b5c;
+    background-color: #111827;
   }
   100% {
     background-color: transparent;
@@ -348,7 +397,7 @@
 
 @keyframes spinner-fade9234-dark {
   0% {
-    background-color: #70c100;
+    background-color: #f8fafc;
   }
   100% {
     background-color: transparent;
@@ -364,13 +413,25 @@
   }
 }
 
+@keyframes spinner-fade9234-on-primary-dark {
+  0% {
+    background-color: #111827;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
 .dark .spinner .spinner-blade {
   animation-name: spinner-fade9234-dark;
 }
 
-/* Visible on navy / primary buttons */
 .spinner.on-primary .spinner-blade {
   animation-name: spinner-fade9234-on-primary;
+}
+
+.dark .spinner.on-primary .spinner-blade {
+  animation-name: spinner-fade9234-on-primary-dark;
 }
 
 .spinner.sm {

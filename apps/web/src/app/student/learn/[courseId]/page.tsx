@@ -229,19 +229,19 @@ export default function LearningPage() {
   return (
     <div className="min-h-screen bg-canvas">
       {/* Top utility bar — image 1 */}
-      <header className="sticky top-0 z-30 border-b border-border/80 bg-white/95 backdrop-blur dark:bg-background/95">
+      <header className="sticky top-0 z-30 border-b border-border/80 bg-background/95 backdrop-blur dark:bg-background/95">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
           <button
             type="button"
             onClick={() => setSidebarOpen((v) => !v)}
-            className="rounded-xl p-2 text-brand-navy hover:bg-muted"
+            className="rounded-xl p-2 text-primary hover:bg-muted"
             aria-label="Toggle curriculum"
           >
             <Menu className="h-5 w-5" />
           </button>
           <Link
             href="/student/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-brand-navy dark:text-foreground"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-primary dark:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
@@ -262,7 +262,7 @@ export default function LearningPage() {
                 "rounded-full",
                 currentLesson?.completed
                   ? "bg-muted text-muted-foreground"
-                  : "bg-brand-navy text-white hover:bg-brand-navy/90",
+                  : "bg-primary text-primary-foreground hover:bg-primary/90",
               )}
             >
               <CheckCircle2 className="h-4 w-4" />
@@ -274,7 +274,7 @@ export default function LearningPage() {
         {/* Course title row — image 2 */}
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-end justify-between gap-3 border-t border-border/50 px-4 py-4 sm:px-6">
           <div className="min-w-0">
-            <h1 className="font-display text-xl font-bold text-brand-navy dark:text-foreground md:text-2xl">
+            <h1 className="font-display text-xl font-bold text-primary dark:text-foreground md:text-2xl">
               {data.course.title}
             </h1>
             <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -289,7 +289,7 @@ export default function LearningPage() {
 
       <div className="mx-auto flex max-w-[1440px]">
         {sidebarOpen ? (
-          <aside className="scrollbar-thin sticky top-[8.5rem] hidden h-[calc(100vh-8.5rem)] w-[320px] shrink-0 overflow-y-auto border-r border-border bg-white dark:bg-background lg:block">
+          <aside className="scrollbar-thin sticky top-[8.5rem] hidden h-[calc(100vh-8.5rem)] w-[320px] shrink-0 overflow-y-auto border-r border-border bg-background lg:block">
             <div className="p-4">
               {data.modules.map((mod) => {
                 const open = openModules[mod.id] !== false;
@@ -315,7 +315,7 @@ export default function LearningPage() {
                         {mod.title}
                       </span>
                       {allDone ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-brand-lime" />
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
                       ) : null}
                       <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
                         {mod.lessons.length} lessons
@@ -323,7 +323,7 @@ export default function LearningPage() {
                     </button>
                     {open ? (
                       <>
-                        <div className="mx-2 mb-1 h-0.5 bg-brand-navy dark:bg-brand-lime" />
+                        <div className="mx-2 mb-1 h-0.5 bg-primary" />
                         <ul>
                           {mod.lessons.map((lesson) => {
                             const active = lesson.id === currentLesson?.id;
@@ -339,12 +339,12 @@ export default function LearningPage() {
                                   className={cn(
                                     "flex w-full items-center gap-3 border-b border-border/60 px-3 py-3 text-left text-sm transition",
                                     active
-                                      ? "bg-brand-navy/5 text-brand-navy dark:bg-brand-lime/10"
+                                      ? "bg-primary/5 text-primary dark:bg-primary/10"
                                       : "text-muted-foreground hover:bg-muted/50",
                                   )}
                                 >
                                   {lesson.completed ? (
-                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-brand-lime" />
+                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
                                   ) : (
                                     <Circle className="h-4 w-4 shrink-0" />
                                   )}
@@ -375,7 +375,7 @@ export default function LearningPage() {
             </p>
           ) : null}
 
-          <div className="overflow-hidden rounded-[1.25rem] bg-brand-navy shadow-lg">
+          <div className="overflow-hidden rounded-[1.25rem] bg-primary shadow-lg">
             {currentLesson?.videoUrl ? (
               <video
                 key={currentLesson.id}
@@ -386,7 +386,7 @@ export default function LearningPage() {
                 Your browser does not support video playback.
               </video>
             ) : (
-              <div className="flex aspect-video items-center justify-center bg-gradient-to-br from-brand-navy to-[#001a38] text-white">
+              <div className="flex aspect-video items-center justify-center bg-primary text-primary-foreground">
                 <div className="px-6 text-center">
                   <p className="text-sm text-white/70">Lesson video</p>
                   <p className="mt-2 text-xl font-bold">
@@ -411,7 +411,7 @@ export default function LearningPage() {
 
               <TabsContent value="content">
                 <article className="card-soft p-6">
-                  <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+                  <h2 className="text-lg font-bold text-primary dark:text-foreground">
                     {currentLesson?.title}
                   </h2>
                   {data.instructors[0] ? (
@@ -454,7 +454,7 @@ export default function LearningPage() {
                     No quiz is linked to this lesson yet.
                   </div>
                 ) : quizStarted && quiz ? (
-                  <div className="mx-auto max-w-lg rounded-[1.75rem] border border-border bg-white p-6 shadow-lg dark:bg-card">
+                  <div className="mx-auto max-w-lg rounded-[1.75rem] border border-border bg-card p-6 shadow-lg dark:bg-card">
                     <div className="flex items-center justify-between gap-3">
                       <button
                         type="button"
@@ -463,7 +463,7 @@ export default function LearningPage() {
                       >
                         ← Back
                       </button>
-                      <p className="text-sm font-bold text-brand-navy dark:text-foreground">
+                      <p className="text-sm font-bold text-primary dark:text-foreground">
                         {quiz.title}
                       </p>
                       <span className="text-xs text-muted-foreground">
@@ -472,13 +472,13 @@ export default function LearningPage() {
                     </div>
                     <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
                       <div
-                        className="h-full rounded-full bg-brand-navy"
+                        className="h-full rounded-full bg-primary"
                         style={{
                           width: `${((qIndex + 1) / quiz.questions.length) * 100}%`,
                         }}
                       />
                     </div>
-                    <p className="mt-5 text-xs font-semibold text-brand-navy">
+                    <p className="mt-5 text-xs font-semibold text-primary">
                       Question {qIndex + 1} of {quiz.questions.length}
                     </p>
                     <h3 className="mt-2 text-lg font-bold leading-snug text-foreground">
@@ -501,7 +501,7 @@ export default function LearningPage() {
                               className={cn(
                                 "flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition",
                                 selected
-                                  ? "border-brand-navy bg-brand-navy/5 text-brand-navy"
+                                  ? "border-primary bg-primary/5 text-primary"
                                   : "border-border bg-background hover:bg-muted/40",
                               )}
                             >
@@ -510,7 +510,7 @@ export default function LearningPage() {
                                 className={cn(
                                   "flex h-5 w-5 items-center justify-center rounded-full border",
                                   selected
-                                    ? "border-brand-navy bg-brand-navy text-white"
+                                    ? "border-primary bg-primary text-primary-foreground"
                                     : "border-muted-foreground/40",
                                 )}
                               >
@@ -526,7 +526,7 @@ export default function LearningPage() {
                     <Button
                       type="button"
                       disabled={busy}
-                      className="mt-6 h-12 w-full rounded-2xl bg-brand-navy"
+                      className="mt-6 h-12 w-full rounded-2xl bg-primary"
                       onClick={() => {
                         if (qIndex < quiz.questions.length - 1) {
                           setQIndex((i) => i + 1);
@@ -545,7 +545,7 @@ export default function LearningPage() {
                   </div>
                 ) : (
                   <div className="card-soft space-y-4 p-6">
-                    <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+                    <h2 className="text-lg font-bold text-primary dark:text-foreground">
                       {activeQuizMeta.title}
                     </h2>
                     {activeQuizMeta.description ? (
@@ -562,7 +562,7 @@ export default function LearningPage() {
                         className={cn(
                           "rounded-2xl px-4 py-3 text-sm font-semibold",
                           quizResult.passed
-                            ? "bg-brand-lime-soft text-brand-navy"
+                            ? "bg-primary-soft text-primary"
                             : "bg-destructive/10 text-destructive",
                         )}
                       >
@@ -592,7 +592,7 @@ export default function LearningPage() {
                 ) : (
                   <div className="card-soft space-y-5 p-6">
                     <div>
-                      <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+                      <h2 className="text-lg font-bold text-primary dark:text-foreground">
                         {activeAssignment.title}
                       </h2>
                       {activeAssignment.description ? (
@@ -611,8 +611,8 @@ export default function LearningPage() {
                       />
                     </div>
                     <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[1.25rem] border border-dashed border-border bg-muted/30 px-6 py-10 text-center transition hover:bg-muted/50">
-                      <Upload className="h-6 w-6 text-brand-navy" />
-                      <span className="text-sm font-semibold text-brand-navy dark:text-foreground">
+                      <Upload className="h-6 w-6 text-primary" />
+                      <span className="text-sm font-semibold text-primary dark:text-foreground">
                         Upload assignment file
                       </span>
                       <span className="text-xs text-muted-foreground">
@@ -632,7 +632,7 @@ export default function LearningPage() {
                       ) : null}
                     </label>
                     {submitMsg ? (
-                      <p className="text-sm font-medium text-brand-navy">
+                      <p className="text-sm font-medium text-primary">
                         {submitMsg}
                       </p>
                     ) : null}

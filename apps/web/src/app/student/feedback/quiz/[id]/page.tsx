@@ -93,10 +93,10 @@ export default function FeedbackQuizPage() {
         ) : (
           <article className="card-soft mx-auto max-w-2xl space-y-5 p-6 sm:p-8">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-brand-lime">
+              <p className="text-xs font-bold uppercase tracking-wide text-primary">
                 Quiz
               </p>
-              <h1 className="mt-2 font-display text-2xl font-bold text-brand-navy dark:text-foreground sm:text-3xl">
+              <h1 className="mt-2 font-display text-2xl font-bold text-primary dark:text-foreground sm:text-3xl">
                 {title}
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">

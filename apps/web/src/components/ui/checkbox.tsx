@@ -19,7 +19,7 @@ export function Checkbox({
       checked={checked}
       onChange={(e) => onCheckedChange?.(e.target.checked)}
       className={cn(
-        "h-4 w-4 shrink-0 rounded border border-input accent-[var(--brand-navy,#002B5C)]",
+        "h-4 w-4 shrink-0 rounded border border-input accent-primary",
         className,
       )}
       {...props}

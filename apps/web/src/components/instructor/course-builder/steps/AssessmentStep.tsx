@@ -204,7 +204,7 @@ export function AssessmentStep({
     <div className="mx-auto max-w-2xl space-y-5">
       <div className="card-soft space-y-5 p-5 sm:p-6">
         <div>
-          <h2 className="text-lg font-bold text-brand-navy dark:text-foreground">
+          <h2 className="text-lg font-bold text-primary dark:text-foreground">
             Assessment
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -392,7 +392,7 @@ export function AssessmentStep({
                             patchQuestion(index, { correctIndex: optionIndex })
                           }
                           aria-label={`Mark option ${optionIndex + 1} correct`}
-                          className="h-4 w-4 shrink-0 accent-[#70C100]"
+                          className="h-4 w-4 shrink-0 accent-primary"
                         />
                         <Input
                           value={option}

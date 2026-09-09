@@ -83,7 +83,7 @@ export default function OrdersPage() {
       <div className="space-y-6 px-6 py-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Orders
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -111,7 +111,7 @@ export default function OrdersPage() {
           </p>
         ) : filtered.length === 0 ? (
           <div className="card-soft px-6 py-14 text-center">
-            <h2 className="font-display text-xl font-bold text-brand-navy dark:text-foreground">
+            <h2 className="font-display text-xl font-bold text-primary dark:text-foreground">
               No orders found
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
@@ -152,8 +152,8 @@ export default function OrdersPage() {
                           "rounded-full px-3 py-1 text-xs font-bold",
                           o.status.toLowerCase() === "paid" ||
                             o.status.toLowerCase() === "succeeded"
-                            ? "bg-brand-lime-soft text-brand-navy"
-                            : "bg-canvas text-brand-navy dark:bg-muted dark:text-foreground",
+                            ? "bg-primary-soft text-primary"
+                            : "bg-canvas text-primary dark:bg-muted dark:text-foreground",
                         )}
                       >
                         {formatStatus(o.status)}

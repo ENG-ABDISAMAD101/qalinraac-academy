@@ -140,7 +140,7 @@ export default function InstructorCourseDetailPage() {
                   unoptimized
                 />
               ) : (
-                <div className="flex h-full items-center justify-center bg-brand-navy/5 text-lg font-semibold text-brand-navy">
+                <div className="flex h-full items-center justify-center bg-primary/5 text-lg font-semibold text-primary">
                   {course.title}
                 </div>
               )}
@@ -191,7 +191,7 @@ export default function InstructorCourseDetailPage() {
               <p className="text-sm text-destructive">{actionError}</p>
             ) : null}
             {actionMsg ? (
-              <p className="rounded-2xl bg-brand-lime-soft px-4 py-3 text-sm font-medium text-brand-navy">
+              <p className="rounded-2xl bg-primary-soft px-4 py-3 text-sm font-medium text-primary">
                 {actionMsg}
               </p>
             ) : null}
@@ -205,7 +205,7 @@ export default function InstructorCourseDetailPage() {
               <TabsContent value="course" className="space-y-4">
                 <div className="card-soft space-y-4 p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3">
-                    <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+                    <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
                       {course.title}
                     </h1>
                     <span
@@ -237,7 +237,7 @@ export default function InstructorCourseDetailPage() {
 
                   {(course.learningOutcomes?.length ?? 0) > 0 ? (
                     <div>
-                      <h2 className="text-sm font-bold text-brand-navy dark:text-foreground">
+                      <h2 className="text-sm font-bold text-primary dark:text-foreground">
                         What you&apos;ll learn
                       </h2>
                       <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
@@ -293,7 +293,7 @@ export default function InstructorCourseDetailPage() {
 
               <TabsContent value="discussions" className="space-y-4">
                 <div className="card-soft space-y-4 p-5">
-                  <h2 className="text-base font-bold text-brand-navy dark:text-foreground">
+                  <h2 className="text-base font-bold text-primary dark:text-foreground">
                     Course discussions
                   </h2>
                   {(course.discussions?.length ?? 0) === 0 ? (

@@ -67,31 +67,31 @@ function ProgressAvatar({
           cy="64"
           r={r}
           fill="none"
-          stroke="#70C100"
+          stroke="#6B7280"
           strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={offset}
         />
       </svg>
-      <div className="absolute inset-3 overflow-hidden rounded-full bg-brand-lime-soft">
+      <div className="absolute inset-3 overflow-hidden rounded-full bg-primary-soft">
         <Avatar className="h-full w-full">
           <AvatarImage
             src={mediaPublicUrl(avatarUrl)}
             alt={name}
             className="object-cover"
           />
-          <AvatarFallback className="text-lg font-bold text-brand-navy">
+          <AvatarFallback className="text-lg font-bold text-primary">
             {initialsFromName(name)}
           </AvatarFallback>
         </Avatar>
       </div>
       <span
-        className="absolute -bottom-1 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 text-brand-navy dark:text-brand-lime"
+        className="absolute -bottom-1 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 text-primary"
         title={`${streakDays} day streak`}
         aria-label={`${streakDays} day streak`}
       >
-        <Flame className="h-5 w-5 fill-brand-lime text-brand-lime" />
+        <Flame className="h-5 w-5 fill-primary text-primary" />
         <span className="text-xs font-bold">{streakDays}</span>
       </span>
     </div>
@@ -168,12 +168,12 @@ export default function StudentDashboardPage() {
     <StudentShell>
       <div className="grid min-h-screen grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-          <section className="rounded-[1.5rem] border border-border/70 bg-white px-8 py-10 shadow-sm dark:bg-card">
+          <section className="rounded-[1.5rem] border border-border/70 bg-card px-8 py-10 shadow-sm dark:bg-card">
             <div className="max-w-xl">
               <p className="text-sm font-medium text-muted-foreground">
                 {greetingForHour()}, {displayName}
               </p>
-              <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-brand-navy dark:text-foreground md:text-4xl">
+              <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-primary dark:text-foreground md:text-4xl">
                 {heroTitle}
               </h1>
               <Button asChild className="mt-6">
@@ -204,15 +204,15 @@ export default function StudentDashboardPage() {
                         <p className="text-xs font-medium text-muted-foreground">
                           {card.label}
                         </p>
-                        <p className="mt-1 text-2xl font-bold text-brand-navy dark:text-foreground">
+                        <p className="mt-1 text-2xl font-bold text-primary dark:text-foreground">
                           {card.value}
                         </p>
                       </div>
                       <span
                         className={
                           card.tone === "lime"
-                            ? "flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-lime-soft text-brand-navy"
-                            : "flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-brand-navy dark:text-brand-lime"
+                            ? "flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-soft text-primary"
+                            : "flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-primary"
                         }
                       >
                         <Icon className="h-5 w-5" aria-hidden />
@@ -230,11 +230,11 @@ export default function StudentDashboardPage() {
                       href={`/student/learn/${p.courseId}`}
                       className="card-soft flex items-center gap-4 px-4 py-3.5 transition hover:-translate-y-0.5"
                     >
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-navy text-xs font-bold text-brand-lime dark:bg-brand-lime dark:text-brand-navy">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
                         {p.progressPercent}%
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-brand-navy dark:text-foreground">
+                        <p className="truncate font-semibold text-primary dark:text-foreground">
                           {p.title}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -247,7 +247,7 @@ export default function StudentDashboardPage() {
               ) : null}
 
               <section>
-                <h2 className="mb-4 text-lg font-bold text-brand-navy dark:text-foreground">
+                <h2 className="mb-4 text-lg font-bold text-primary dark:text-foreground">
                   Continue Learning
                 </h2>
                 {(data?.learningCourses?.length ?? 0) === 0 ? (
@@ -276,7 +276,7 @@ export default function StudentDashboardPage() {
                               unoptimized
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center bg-brand-navy/5 text-sm font-semibold text-brand-navy">
+                            <div className="flex h-full items-center justify-center bg-primary/5 text-sm font-semibold text-primary">
                               {course.title}
                             </div>
                           )}
@@ -287,7 +287,7 @@ export default function StudentDashboardPage() {
                           </h3>
                           <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                             <div
-                              className="h-full rounded-full bg-brand-lime"
+                              className="h-full rounded-full bg-primary"
                               style={{
                                 width: `${course.progressPercent}%`,
                               }}
@@ -311,7 +311,7 @@ export default function StudentDashboardPage() {
               </section>
 
               <section className="card-soft p-5">
-                <h2 className="mb-4 text-base font-bold text-brand-navy dark:text-foreground">
+                <h2 className="mb-4 text-base font-bold text-primary dark:text-foreground">
                   Upcoming Quizzes
                 </h2>
                 {(data?.upcomingQuizzes?.length ?? 0) === 0 ? (
@@ -345,7 +345,7 @@ export default function StudentDashboardPage() {
 
               {(data?.notifications?.length ?? 0) > 0 ? (
                 <section className="card-soft p-5">
-                  <h2 className="mb-4 text-base font-bold text-brand-navy dark:text-foreground">
+                  <h2 className="mb-4 text-base font-bold text-primary dark:text-foreground">
                     Recent Notifications
                   </h2>
                   <ul className="space-y-3">
@@ -354,7 +354,7 @@ export default function StudentDashboardPage() {
                         key={n.id}
                         className={cn(
                           "rounded-2xl border border-border px-4 py-3",
-                          !n.read && "bg-brand-lime-soft/40",
+                          !n.read && "bg-primary-soft/40",
                         )}
                       >
                         <p className="text-sm font-semibold text-foreground">
@@ -374,7 +374,7 @@ export default function StudentDashboardPage() {
 
         <aside className="hidden space-y-6 border-l border-border/60 bg-background/60 px-5 py-6 xl:block">
           <section className="card-soft p-5">
-            <h2 className="mb-6 font-bold text-brand-navy dark:text-foreground">
+            <h2 className="mb-6 font-bold text-primary dark:text-foreground">
               Statistic
             </h2>
             {loading ? (
@@ -395,7 +395,7 @@ export default function StudentDashboardPage() {
 
                 <div className="mt-6 grid grid-cols-3 gap-2 text-center">
                   <div className="rounded-2xl bg-muted px-2 py-3">
-                    <p className="text-lg font-bold text-brand-navy dark:text-foreground">
+                    <p className="text-lg font-bold text-primary dark:text-foreground">
                       {stats?.streakDays ?? 0}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
@@ -403,13 +403,13 @@ export default function StudentDashboardPage() {
                     </p>
                   </div>
                   <div className="rounded-2xl bg-muted px-2 py-3">
-                    <p className="text-lg font-bold text-brand-navy dark:text-foreground">
+                    <p className="text-lg font-bold text-primary dark:text-foreground">
                       {stats?.completedLessons ?? 0}
                     </p>
                     <p className="text-[10px] text-muted-foreground">Done</p>
                   </div>
                   <div className="rounded-2xl bg-muted px-2 py-3">
-                    <p className="text-lg font-bold text-brand-navy dark:text-foreground">
+                    <p className="text-lg font-bold text-primary dark:text-foreground">
                       {stats?.remainingLessons ?? 0}
                     </p>
                     <p className="text-[10px] text-muted-foreground">Left</p>
@@ -427,7 +427,7 @@ export default function StudentDashboardPage() {
                       />
                       <YAxis hide />
                       <Tooltip
-                        cursor={{ fill: "rgba(0,43,92,0.04)" }}
+                        cursor={{ fill: "rgba(28,30,33,0.04)" }}
                         contentStyle={{
                           borderRadius: 12,
                           border: "none",
@@ -436,7 +436,7 @@ export default function StudentDashboardPage() {
                       />
                       <Bar
                         dataKey="hours"
-                        fill="#002B5C"
+                        fill="#111827"
                         radius={[8, 8, 8, 8]}
                         barSize={28}
                       />

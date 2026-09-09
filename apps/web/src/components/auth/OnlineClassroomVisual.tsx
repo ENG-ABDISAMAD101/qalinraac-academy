@@ -23,14 +23,14 @@ const pillars = [
 
 export function OnlineClassroomVisual() {
   return (
-    <div className="relative flex h-full min-h-[22rem] w-full items-center justify-center overflow-hidden bg-white lg:min-h-0">
+    <div className="relative flex h-full min-h-[22rem] w-full items-center justify-center overflow-hidden bg-card lg:min-h-0">
       <motion.div
-        className="pointer-events-none absolute -left-20 top-16 h-72 w-72 rounded-full bg-brand-lime/12 blur-3xl"
+        className="pointer-events-none absolute -left-20 top-16 h-72 w-72 rounded-full bg-primary/12 blur-3xl"
         animate={{ x: [0, 20, 0], opacity: [0.4, 0.65, 0.4] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="pointer-events-none absolute -right-16 bottom-10 h-80 w-80 rounded-full bg-brand-navy/8 blur-3xl"
+        className="pointer-events-none absolute -right-16 bottom-10 h-80 w-80 rounded-full bg-primary/8 blur-3xl"
         animate={{ x: [0, -16, 0], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -54,13 +54,13 @@ export function OnlineClassroomVisual() {
             return (
               <motion.li
                 key={item.title}
-                className="flex items-start gap-4 rounded-2xl border border-border/70 bg-[#F8FAFC] px-4 py-4"
+                className="flex items-start gap-4 rounded-2xl border border-border/70 bg-canvas px-4 py-4"
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.12 + i * 0.1, duration: 0.45 }}
               >
                 <motion.span
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-navy text-brand-lime shadow-sm"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm"
                   animate={{ y: [0, -3, 0] }}
                   transition={{
                     delay: 0.9 + i * 0.2,
@@ -72,7 +72,7 @@ export function OnlineClassroomVisual() {
                   <Icon className="h-5 w-5" />
                 </motion.span>
                 <div className="min-w-0 pt-0.5">
-                  <p className="text-base font-bold text-brand-navy">
+                  <p className="text-base font-bold text-primary">
                     {item.title}
                   </p>
                   <p className="mt-0.5 text-sm text-muted-foreground">

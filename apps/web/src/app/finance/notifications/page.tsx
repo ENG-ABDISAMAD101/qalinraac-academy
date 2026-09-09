@@ -1,20 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FinanceShell } from "@/components/finance/FinanceShell";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { demoFinanceNotifications } from "@/lib/finance-demo-data";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  deleteNotificationRequest,
+  formatNotificationTime,
+  getApiErrorMessage,
+  markAllNotificationsReadRequest,
+  markNotificationReadRequest,
+  notificationsList,
+  type AppNotification,
+} from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export default function FinanceNotificationsPage() {
-  const [items, setItems] = useState(demoFinanceNotifications);
+  const [items, setItems] = useState<AppNotification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      setItems(await notificationsList());
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not load notifications."));
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function markAll() {
+    try {
+      await markAllNotificationsReadRequest();
+      await load();
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not mark notifications read."));
+    }
+  }
 
   return (
     <FinanceShell>
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+            <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
               Notifications{" "}
               <span className="text-muted-foreground">{items.length}</span>
             </h1>
@@ -22,71 +59,71 @@ export default function FinanceNotificationsPage() {
               Purchases, withdrawals, income, expenses, announcements
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() =>
-              setItems((prev) => prev.map((n) => ({ ...n, read: true })))
-            }
-            className="rounded-full border border-border px-4 py-2 text-xs font-semibold"
-          >
+          <Button type="button" variant="outline" onClick={() => void markAll()}>
             Mark as read
-          </button>
+          </Button>
         </div>
-        <ul className="space-y-3">
-          {items.map((n) => {
-            const initials = n.actor
-              .split(" ")
-              .map((p) => p[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase();
-            return (
+
+        {error ? (
+          <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
+
+        {loading ? (
+          <div className="flex min-h-[12rem] items-center justify-center">
+            <Spinner label="Loading notifications" />
+          </div>
+        ) : items.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+            No notifications yet
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {items.map((n) => (
               <li
                 key={n.id}
                 className={cn(
                   "card-soft flex flex-wrap items-start justify-between gap-4 p-5",
-                  !n.read && "ring-1 ring-brand-lime/40",
+                  !n.read && "ring-1 ring-primary/40",
                 )}
               >
-                <div className="flex gap-3">
-                  <Avatar className="h-10 w-10 border border-border">
-                    <AvatarImage src={n.avatar} alt={n.actor} />
-                    <AvatarFallback>{initials}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold">{n.actor}</p>
-                    <p className="text-sm text-muted-foreground">{n.message}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{n.time}</p>
-                  </div>
+                <div>
+                  <p className="font-semibold">{n.title}</p>
+                  <p className="text-sm text-muted-foreground">{n.body}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {formatNotificationTime(n.createdAt)}
+                  </p>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  {!n.read ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        void markNotificationReadRequest(n.id).then(load)
+                      }
+                    >
+                      Mark read
+                    </Button>
+                  ) : null}
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive"
                     onClick={() =>
-                      setItems((prev) =>
-                        prev.map((x) =>
-                          x.id === n.id ? { ...x, read: true } : x,
-                        ),
-                      )
+                      void deleteNotificationRequest(n.id).then(load)
                     }
-                    className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold"
-                  >
-                    Mark read
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setItems((prev) => prev.filter((x) => x.id !== n.id))
-                    }
-                    className="rounded-full px-3 py-1.5 text-xs font-semibold text-red-600"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        )}
       </div>
     </FinanceShell>
   );

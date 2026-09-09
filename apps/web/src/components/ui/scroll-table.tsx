@@ -54,7 +54,7 @@ export function ScrollTableHead({
     <thead
       className={cn(
         "sticky top-0 z-10 border-b border-border bg-muted/95 text-xs uppercase tracking-wide text-muted-foreground backdrop-blur-sm",
-        "shadow-[0_1px_0_0_rgba(0,43,92,0.08)]",
+        "shadow-[0_1px_0_0_rgba(28,30,33,0.08)]",
         className,
       )}
     >
@@ -74,7 +74,7 @@ export function StickyActionCell({
     <td
       className={cn(
         "sticky right-0 bg-card px-5 py-4",
-        "shadow-[-8px_0_12px_-8px_rgba(0,43,92,0.12)]",
+        "shadow-[-8px_0_12px_-8px_rgba(28,30,33,0.12)]",
         className,
       )}
     >

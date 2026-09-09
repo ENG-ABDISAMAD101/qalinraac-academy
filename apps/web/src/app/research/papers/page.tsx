@@ -45,7 +45,7 @@ export default function ResearchPapersPage() {
     <ResearchShell>
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
-          <h1 className="font-display text-3xl font-bold text-brand-navy dark:text-foreground">
+          <h1 className="font-display text-3xl font-bold text-primary dark:text-foreground">
             Research Papers
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -68,7 +68,7 @@ export default function ResearchPapersPage() {
               className={cn(
                 "rounded-full px-3 py-2 text-xs font-semibold",
                 filter === f
-                  ? "bg-brand-navy text-white dark:bg-brand-lime dark:text-brand-navy"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground",
               )}
             >

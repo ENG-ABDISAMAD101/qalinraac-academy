@@ -39,7 +39,7 @@ export function AdminNotificationsMenu() {
         )}
       >
         <DropdownMenuLabel className="flex items-center justify-between gap-3 px-4 py-3 font-normal">
-          <p className="text-sm font-semibold text-brand-navy dark:text-brand-lime">
+          <p className="text-sm font-semibold text-primary">
             Notifications{" "}
             <span className="text-muted-foreground">{totalNumber}</span>
           </p>
@@ -49,7 +49,7 @@ export function AdminNotificationsMenu() {
               e.preventDefault();
               setItems((prev) => prev.map((n) => ({ ...n, read: true })));
             }}
-            className="rounded-md px-1 text-xs font-semibold text-brand-lime transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-md px-1 text-xs font-semibold text-primary transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Mark as read
           </button>
@@ -76,7 +76,7 @@ export function AdminNotificationsMenu() {
                   }
                   className={cn(
                     "flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-accent",
-                    !n.read && "bg-brand-lime-soft/40 dark:bg-secondary/50",
+                    !n.read && "bg-primary-soft/40 dark:bg-secondary/50",
                   )}
                 >
                   <Avatar className="mt-0.5 h-10 w-10 border border-border">
@@ -93,7 +93,7 @@ export function AdminNotificationsMenu() {
                     </p>
                   </div>
                   {!n.read ? (
-                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand-lime" />
+                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
                   ) : null}
                 </button>
               </li>

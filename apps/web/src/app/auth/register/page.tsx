@@ -121,15 +121,15 @@ function RegisterForm() {
   const signInHref = authLoginHref(redirectParam ?? undefined);
 
   return (
-    <div className="min-h-screen bg-white text-foreground">
-      <header className="border-b border-border/70 bg-white">
+    <div className="min-h-screen bg-canvas text-foreground">
+      <header className="border-b border-border/70 bg-background">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-navy text-sm font-bold lowercase text-brand-lime">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold lowercase text-primary-foreground">
               q
             </span>
             <div className="min-w-0">
-              <p className="font-display text-lg font-bold leading-tight text-brand-navy">
+              <p className="font-display text-lg font-bold leading-tight text-primary">
                 Qalinraac
               </p>
               <p className="truncate text-xs text-muted-foreground">
@@ -141,7 +141,7 @@ function RegisterForm() {
             <span className="hidden sm:inline">Already have an account? </span>
             <Link
               href={signInHref}
-              className="font-semibold text-brand-navy underline-offset-4 hover:underline"
+              className="font-semibold text-primary underline-offset-4 hover:underline"
             >
               Sign in
             </Link>
@@ -152,8 +152,8 @@ function RegisterForm() {
       <main className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl lg:grid-cols-[1.1fr_0.9fr]">
         <section className="order-1 flex items-center justify-center px-4 py-10 sm:px-8 lg:order-2 lg:border-l lg:border-border/70 lg:py-12">
           <div className="w-full max-w-md">
-            <div className="rounded-[1.75rem] border border-border/80 bg-white p-6 shadow-[0_20px_50px_-30px_rgba(0,43,92,0.35)] sm:p-8">
-              <h1 className="font-display text-3xl font-bold tracking-tight text-brand-navy">
+            <div className="rounded-[1.75rem] border border-border/80 bg-card p-6 shadow-[0_20px_50px_-30px_rgba(28,30,33,0.35)] sm:p-8">
+              <h1 className="font-display text-3xl font-bold tracking-tight text-primary">
                 Create Your Account
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -345,11 +345,11 @@ function RegisterForm() {
 
                 <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
                   By creating an account, you agree to our{" "}
-                  <span className="font-medium text-brand-navy">
+                  <span className="font-medium text-primary">
                     Terms of Service
                   </span>{" "}
                   and{" "}
-                  <span className="font-medium text-brand-navy">
+                  <span className="font-medium text-primary">
                     Privacy Policy
                   </span>
                   .
@@ -360,7 +360,7 @@ function RegisterForm() {
                 Already have an account?{" "}
                 <Link
                   href={signInHref}
-                  className="font-semibold text-brand-navy underline-offset-4 hover:underline"
+                  className="font-semibold text-primary underline-offset-4 hover:underline"
                 >
                   Sign in
                 </Link>
@@ -379,7 +379,7 @@ function RegisterForm() {
 
 export default function AuthRegisterPage() {
   return (
-    <Suspense fallback={<PageLoader label="Loading registration" className="bg-white" />}>
+    <Suspense fallback={<PageLoader label="Loading registration" className="bg-canvas" />}>
       <RegisterForm />
     </Suspense>
   );

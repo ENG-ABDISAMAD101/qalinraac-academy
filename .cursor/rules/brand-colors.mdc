@@ -1,0 +1,46 @@
+---
+description: Qalinraac Academy color palette (strict)
+alwaysApply: true
+---
+
+# Color Palette (strict — use only these)
+
+## Light Theme
+
+| Role | HEX |
+|------|-----|
+| Background | `#F7F8FA` |
+| Sidebar | `#FFFFFF` |
+| Cards | `#FFFFFF` |
+| Border | `#E5E7EB` |
+| Primary Text | `#111827` |
+| Secondary | `#6B7280` |
+| Muted | `#9CA3AF` |
+| Danger | `#EF4444` |
+
+## Dark Theme
+
+| Role | HEX |
+|------|-----|
+| Background | `#111827` |
+| Sidebar | `#111827` |
+| Cards | `#1E293B` |
+| Border | `#334155` |
+| Primary Text | `#F8FAFC` |
+| Secondary | `#CBD5E1` |
+| Muted | `#94A3B8` |
+| Danger | `#EF4444` |
+
+## Mapping
+
+- Page canvas → Background (`--canvas`: light `#F7F8FA` / dark `#111827`)
+- Sidebar / header chrome → Sidebar (`--background`: light `#FFFFFF` / dark `#111827`)
+- Cards / popovers → Cards (`--card`: light `#FFFFFF` / dark `#1E293B`)
+- Card borders → Border (`--border`)
+- Inset wells / chips on cards → Sidebar (`--muted` / `--accent` in dark = `#111827`)
+- Headings / CTAs → Primary Text (`--primary` / `--foreground`)
+- Body / descriptions → Muted in dark (`--muted-foreground` `#94A3B8`); Secondary `#CBD5E1` via `--secondary-foreground`
+- Placeholders / hints → Muted (`--text-muted`)
+- Errors / destructive actions → Danger (`--destructive` / `text-destructive` / `bg-danger` = `#EF4444`)
+
+Do **not** introduce lime, navy, purple, or other accent hex outside this table. Legacy `brand-*` class names remap to Primary Text / Background / Cards.
