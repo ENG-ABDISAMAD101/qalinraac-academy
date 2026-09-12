@@ -12,10 +12,12 @@ import {
   lessonSchema,
   moduleSchema,
   reorderSchema,
+  updateAssignmentSchema,
   updateCourseSchema,
   updateLessonSchema,
   updateModuleSchema,
   updateProfileSchema,
+  updateQuizSchema,
 } from "./instructors.service.js";
 
 export const instructorsRouter = Router();
@@ -40,6 +42,10 @@ instructorsRouter.post(
   asyncHandler(controller.createCourse),
 );
 instructorsRouter.get("/me/courses/:id", asyncHandler(controller.getCourse));
+instructorsRouter.post(
+  "/me/courses/:id/edit",
+  asyncHandler(controller.openCourseEditor),
+);
 instructorsRouter.patch(
   "/me/courses/:id",
   validate(updateCourseSchema),
@@ -123,6 +129,15 @@ instructorsRouter.get(
   "/me/assignments/:id",
   asyncHandler(controller.getAssignment),
 );
+instructorsRouter.patch(
+  "/me/assignments/:id",
+  validate(updateAssignmentSchema),
+  asyncHandler(controller.updateAssignment),
+);
+instructorsRouter.delete(
+  "/me/assignments/:id",
+  asyncHandler(controller.deleteAssignment),
+);
 instructorsRouter.post(
   "/me/assignments/:id/discussions",
   asyncHandler(controller.replyAssignment),
@@ -138,9 +153,22 @@ instructorsRouter.post(
   validate(createQuizSchema),
   asyncHandler(controller.createQuiz),
 );
+instructorsRouter.patch(
+  "/me/quizzes/:id",
+  validate(updateQuizSchema),
+  asyncHandler(controller.updateQuiz),
+);
+instructorsRouter.delete(
+  "/me/quizzes/:id",
+  asyncHandler(controller.deleteQuiz),
+);
 instructorsRouter.get(
   "/me/quizzes/:id",
   asyncHandler(controller.getQuizResults),
+);
+instructorsRouter.post(
+  "/me/quizzes/:id/attempts/:attemptId/review",
+  asyncHandler(controller.reviewQuizAttempt),
 );
 
 instructorsRouter.get("/me/resources", asyncHandler(controller.listResources));

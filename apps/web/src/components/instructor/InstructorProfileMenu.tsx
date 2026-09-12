@@ -24,7 +24,7 @@ export function InstructorProfileMenu() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const name = user?.fullName ?? "Instructor";
-  const email = user?.email ?? "instructor@qalinraac.local";
+  const email = user?.email ?? "—";
   const avatarSrc = mediaPublicUrl(user?.avatarUrl);
   const initials = name
     .split(" ")
@@ -34,7 +34,7 @@ export function InstructorProfileMenu() {
     .toUpperCase();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"

@@ -6,9 +6,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   clearAuthTokens,
   completeInstructorOnboardingRequest,
@@ -22,6 +24,7 @@ import {
   setAuthTokens,
   type AuthUser,
 } from "@/lib/api";
+import { authLoginHref } from "@/lib/auth-routes";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -55,6 +58,17 @@ export function portalPathForRole(role: string) {
   return "/student/dashboard";
 }
 
+function normalizeRole(role: string) {
+  if (role === "SuperAdmin") return "Super Admin";
+  if (role === "Researcher") return "Research";
+  return role;
+}
+
+function roleAllowed(userRole: string, allowed: string[]) {
+  const normalized = normalizeRole(userRole);
+  return allowed.some((r) => normalizeRole(r) === normalized);
+}
+
 function applyOnboarding(user: AuthUser) {
   if (user.role === "Instructor") {
     if (typeof user.onboardingCompleted === "boolean") {
@@ -69,11 +83,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [onboardingCompleted, setOnboardingCompleted] = useState(true);
+  /** Bumps to invalidate in-flight /me refresh after login/register/logout. */
+  const authEpochRef = useRef(0);
 
   const refresh = useCallback(async () => {
-    const token = getAccessToken();
-    if (!token || token.startsWith("demo")) {
-      if (token?.startsWith("demo")) clearAuthTokens();
+    const epoch = ++authEpochRef.current;
+    const tokenAtStart = getAccessToken();
+    if (!tokenAtStart || tokenAtStart.startsWith("demo")) {
+      if (tokenAtStart?.startsWith("demo")) clearAuthTokens();
+      if (epoch !== authEpochRef.current) return;
       setUser(null);
       setOnboardingCompleted(true);
       setLoading(false);
@@ -86,14 +104,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(() => reject(new Error("Auth timeout")), 12_000),
         ),
       ]);
+      if (epoch !== authEpochRef.current) return;
       setUser(me);
       setOnboardingCompleted(applyOnboarding(me));
     } catch {
-      clearAuthTokens();
-      setUser(null);
-      setOnboardingCompleted(true);
+      if (epoch !== authEpochRef.current) return;
+      // Only clear if this request still owns the session (avoids wiping a newer login).
+      if (getAccessToken() === tokenAtStart) {
+        clearAuthTokens();
+        setUser(null);
+        setOnboardingCompleted(true);
+      }
     } finally {
-      setLoading(false);
+      if (epoch === authEpochRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -104,9 +129,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     try {
       const data = await loginRequest(email, password);
+      // Invalidate any in-flight /me so a stale failure cannot wipe this session.
+      authEpochRef.current += 1;
       setAuthTokens(data.accessToken, data.refreshToken);
       setUser(data.user);
       setOnboardingCompleted(applyOnboarding(data.user));
+      setLoading(false);
       return data.user;
     } catch (err) {
       throw new Error(getApiErrorMessage(err, "Login failed"));
@@ -122,9 +150,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }) => {
       try {
         const data = await registerRequest(input);
+        authEpochRef.current += 1;
         setAuthTokens(data.accessToken, data.refreshToken);
         setUser(data.user);
         setOnboardingCompleted(applyOnboarding(data.user));
+        setLoading(false);
         return data.user;
       } catch (err) {
         throw new Error(getApiErrorMessage(err, "Registration failed"));
@@ -134,6 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    authEpochRef.current += 1;
     const refreshToken = getRefreshToken();
     if (refreshToken && !refreshToken.startsWith("demo")) {
       try {
@@ -145,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAuthTokens();
     setUser(null);
     setOnboardingCompleted(true);
+    setLoading(false);
   }, []);
 
   const completeOnboarding = useCallback(async () => {
@@ -195,4 +227,38 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
+}
+
+/**
+ * Gate portal shells: wait for auth, then allow only matching roles.
+ * Unauthenticated → login (with return path). Wrong role → that role's portal.
+ */
+export function useRequireAuth(allowedRoles: string | string[]) {
+  const allowed = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+  const { user, loading, logout, usingDemo, onboardingCompleted } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const authorized = !!user && roleAllowed(user.role, allowed);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      router.replace(authLoginHref(pathname || "/"));
+      return;
+    }
+    if (!authorized) {
+      router.replace(portalPathForRole(user.role));
+    }
+  }, [loading, user, authorized, router, pathname]);
+
+  return {
+    user: authorized ? user : null,
+    /** True until session is known and role matches (includes redirect wait). */
+    loading: loading || !authorized,
+    ready: !loading && authorized,
+    logout,
+    usingDemo,
+    onboardingCompleted,
+  };
 }

@@ -8,6 +8,9 @@ export interface IQuizAttempt extends Document {
   score: number;
   maxScore: number;
   passed: boolean;
+  /** When failed: pending_review until instructor allows retake. */
+  reviewStatus: "none" | "pending_review" | "retake_allowed";
+  instructorFeedback?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,6 +23,12 @@ const quizAttemptSchema = new Schema<IQuizAttempt>(
     score: { type: Number, required: true },
     maxScore: { type: Number, required: true },
     passed: { type: Boolean, required: true },
+    reviewStatus: {
+      type: String,
+      enum: ["none", "pending_review", "retake_allowed"],
+      default: "none",
+    },
+    instructorFeedback: { type: String },
   },
   { timestamps: true },
 );

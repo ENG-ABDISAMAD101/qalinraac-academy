@@ -6,7 +6,8 @@ import { ACCESS_DURATIONS, type AccessDuration, type StepProps } from "../types"
 import { cn } from "@/lib/utils";
 
 export function PricingStep({ draft, setDraft, readOnly }: StepProps) {
-  const price = draft.priceCents / 100;
+  const priceDollars =
+    draft.priceCents > 0 ? String(draft.priceCents / 100) : "";
 
   return (
     <div className="card-soft mx-auto max-w-xl space-y-6 p-5 sm:p-6">
@@ -15,8 +16,7 @@ export function PricingStep({ draft, setDraft, readOnly }: StepProps) {
           Pricing
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Set the course price and how long students keep access. Discounts are
-          managed by Super Admin.
+          Set the course price and how long students keep access.
         </p>
       </div>
 
@@ -28,9 +28,15 @@ export function PricingStep({ draft, setDraft, readOnly }: StepProps) {
           min={0}
           step="0.01"
           disabled={readOnly}
-          value={Number.isFinite(price) ? price : 0}
+          placeholder="Enter price"
+          value={priceDollars}
           onChange={(e) => {
-            const dollars = Number(e.target.value);
+            const raw = e.target.value.trim();
+            if (raw === "") {
+              setDraft({ priceCents: 0, isFree: true });
+              return;
+            }
+            const dollars = Number(raw);
             const priceCents = Number.isFinite(dollars)
               ? Math.max(0, Math.round(dollars * 100))
               : 0;

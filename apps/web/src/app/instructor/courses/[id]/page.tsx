@@ -26,12 +26,15 @@ import {
 } from "@/lib/api";
 import { cn, initialsFromName } from "@/lib/utils";
 
-function courseStatusLabel(status: string) {
+function courseStatusLabel(status: string, displayStatus?: string) {
+  if (displayStatus === "Published" || displayStatus === "Draft" || displayStatus === "In Progress") {
+    return displayStatus;
+  }
   const map: Record<string, string> = {
     draft: "Draft",
-    pending_review: "Pending Review",
+    in_progress: "In Progress",
+    pending_review: "In Progress",
     published: "Published",
-    rejected: "Rejected",
     archived: "Archived",
   };
   return map[status] ?? status;
@@ -71,10 +74,14 @@ export default function InstructorCourseDetailPage() {
   }, [load]);
 
   const status = course?.status ?? "";
-  const label = courseStatusLabel(status);
-  const canEdit = status !== "pending_review" && status !== "archived";
-  const isPending = status === "pending_review";
-  const isPublished = status === "published";
+  const label = courseStatusLabel(status, course?.displayStatus);
+  const isPending =
+    status === "in_progress" ||
+    course?.reviewStatus === "pending_review" ||
+    status === "pending_review";
+  const isPublished = status === "published" && !course?.liveCourseId;
+  const isRevision = Boolean(course?.liveCourseId || course?.isRevisionDraft);
+  const canEdit = !isPending && status !== "archived";
   const thumb = mediaPublicUrl(course?.bannerUrl ?? course?.thumbnailUrl);
 
   async function runAction(
@@ -180,10 +187,21 @@ export default function InstructorCourseDetailPage() {
             </div>
 
             {isPending ? (
-              <p className="flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0" />
-                Your course is being uploaded and processed. This may take up to
-                24 hours. Please wait while the process is completed.
+              <p className="flex items-start gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
+                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                <span>
+                  <strong className="font-semibold">Pending Academic Review.</strong>{" "}
+                  Your course has been submitted for review. You can no longer
+                  modify the submitted version until it is returned.
+                </span>
+              </p>
+            ) : null}
+
+            {isRevision ? (
+              <p className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
+                <strong className="font-semibold">Editing Changes.</strong> These
+                changes are not live yet. They will be reviewed before being
+                published. Students continue seeing the published version.
               </p>
             ) : null}
 

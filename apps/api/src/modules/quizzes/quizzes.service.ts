@@ -78,6 +78,28 @@ export async function attemptQuiz(
     throw new AppError(400, "INVALID_ANSWERS", "Answer count must match questions");
   }
 
+  const prior = await QuizAttempt.find({ quizId, userId }).sort({ createdAt: -1 });
+  const latest = prior[0];
+  if (latest) {
+    if (latest.passed) {
+      throw new AppError(400, "ALREADY_PASSED", "You already passed this quiz.");
+    }
+    if (latest.reviewStatus === "pending_review") {
+      throw new AppError(
+        400,
+        "PENDING_REVIEW",
+        "Your failed attempt is under instructor review. You cannot retake yet.",
+      );
+    }
+    if (latest.reviewStatus !== "retake_allowed") {
+      throw new AppError(
+        400,
+        "NO_RETAKE",
+        "You already attempted this quiz. Wait for instructor approval to retake.",
+      );
+    }
+  }
+
   let score = 0;
   let maxScore = 0;
   quiz.questions.forEach((q, i) => {
@@ -95,6 +117,7 @@ export async function attemptQuiz(
     score,
     maxScore,
     passed,
+    reviewStatus: passed ? "none" : "pending_review",
   });
 
   return { attempt, percent, passed };

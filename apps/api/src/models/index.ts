@@ -2,6 +2,7 @@ export { User } from "./User.js";
 export { RefreshToken } from "./RefreshToken.js";
 export { AuditLog } from "./AuditLog.js";
 export { Course } from "./Course.js";
+export { CourseRevisionHistory } from "./CourseRevisionHistory.js";
 export { Module } from "./Module.js";
 export { Lesson } from "./Lesson.js";
 export { Enrollment } from "./Enrollment.js";

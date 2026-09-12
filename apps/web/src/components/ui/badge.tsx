@@ -39,9 +39,11 @@ export function courseStatusBadgeVariant(
   switch (status) {
     case "published":
       return "lime";
+    case "in_progress":
     case "pending_review":
       return "warning";
     case "rejected":
+    case "changes_requested":
       return "danger";
     default:
       return "muted";

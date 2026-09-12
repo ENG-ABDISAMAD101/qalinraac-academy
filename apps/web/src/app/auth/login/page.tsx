@@ -78,15 +78,23 @@ function LoginForm() {
     setFormError("");
     try {
       const signedIn = await login(values.email, values.password);
-      router.push(destinationFor(signedIn.role));
+      router.replace(destinationFor(signedIn.role));
     } catch (err) {
       setFormError(getApiErrorMessage(err, "Could not sign in. Check your credentials."));
-    } finally {
       setIsLoading(false);
     }
   }
 
-  const registerHref = authRegisterHref(redirectParam ?? "/register");
+  const registerHref = authRegisterHref(redirectParam ?? undefined);
+
+  if (loading || user || isLoading) {
+    return (
+      <PageLoader
+        label={isLoading || user ? "Signing you in" : "Loading sign in"}
+        className="bg-canvas"
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-canvas text-foreground">

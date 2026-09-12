@@ -2,6 +2,10 @@ import { Types } from "mongoose";
 import { z } from "zod";
 import { AppError } from "../../lib/app-error.js";
 import { writeAuditLog } from "../../lib/audit.js";
+import {
+  normalizeCourseWorkflow,
+  pendingReviewFilter,
+} from "../../lib/course-workflow.js";
 import { Assignment } from "../../models/Assignment.js";
 import { CertificateRequest } from "../../models/CertificateRequest.js";
 import { Course } from "../../models/Course.js";
@@ -18,6 +22,8 @@ import { toPublicUser } from "../auth/auth.service.js";
 import {
   publishCourse,
   requestCourseChanges,
+  academicApproveCourse,
+  disableCourse,
 } from "../courses/courses.service.js";
 import { createNotification } from "../notifications/notifications.service.js";
 
@@ -107,13 +113,13 @@ export async function getDashboard() {
   ] = await Promise.all([
     User.countDocuments({ role: "Student" }),
     User.countDocuments({ role: "Instructor" }),
+    Course.countDocuments({ status: "published", isDisabled: { $ne: true } }),
+    Course.countDocuments({ status: "draft", liveCourseId: { $exists: false } }),
     Course.countDocuments({ status: "published" }),
-    Course.countDocuments({ status: "draft" }),
-    Course.countDocuments({ status: "published" }),
-    Course.countDocuments({ status: "pending_review" }),
+    Course.countDocuments(pendingReviewFilter()),
     StudentActivation.countDocuments({ status: "pending" }),
     CertificateRequest.countDocuments({ status: "pending" }),
-    Course.find({ status: "pending_review" })
+    Course.find(pendingReviewFilter())
       .populate("instructorIds", "fullName email")
       .sort({ submittedAt: -1, updatedAt: -1 })
       .limit(10)
@@ -413,8 +419,15 @@ export async function getInstructor(instructorId: string) {
   });
 
   const published = courses.filter((c) => c.status === "published").length;
-  const pending = courses.filter((c) => c.status === "pending_review").length;
-  const rejected = courses.filter((c) => c.status === "rejected").length;
+  const pending = courses.filter(
+    (c) =>
+      c.status === "in_progress" || String(c.status) === "pending_review",
+  ).length;
+  const rejected = courses.filter(
+    (c) =>
+      c.reviewStatus === "changes_requested" ||
+      String(c.status) === "rejected",
+  ).length;
   const archived = courses.filter((c) => c.status === "archived").length;
   const totalStudents = courseRows.reduce((n, c) => n + c.students, 0);
   const avgProgress =
@@ -481,7 +494,13 @@ export async function getInstructor(instructorId: string) {
 export async function listCourses(status?: string) {
   const filter: Record<string, unknown> = {};
   if (status && status !== "all") {
-    filter.status = status;
+    if (status === "pending_review" || status === "pending") {
+      Object.assign(filter, pendingReviewFilter());
+    } else if (status === "in_progress") {
+      filter.status = "in_progress";
+    } else {
+      filter.status = status;
+    }
   }
   const courses = await Course.find(filter)
     .populate("instructorIds", "fullName email")
@@ -515,6 +534,7 @@ export async function listCourses(status?: string) {
     const instructors = (c.instructorIds ?? []) as unknown as {
       fullName?: string;
     }[];
+    const wf = normalizeCourseWorkflow(c);
     return {
       id: String(c._id),
       title: c.title,
@@ -522,7 +542,10 @@ export async function listCourses(status?: string) {
         instructors.map((i) => i.fullName).filter(Boolean).join(", ") || "—",
       students: studentsMap.get(String(c._id)) ?? 0,
       lessons: lessonsMap.get(String(c._id)) ?? 0,
-      status: c.status,
+      status: wf.status,
+      reviewStatus: wf.reviewStatus,
+      isRevision: Boolean(c.liveCourseId),
+      liveCourseId: c.liveCourseId ? String(c.liveCourseId) : undefined,
       createdAt: c.createdAt,
       submittedAt: c.submittedAt,
       priceCents: c.priceCents,
@@ -601,6 +624,77 @@ export async function getCourseReview(courseId: string) {
     authors.map((u) => [String(u._id), u]),
   );
 
+  const wf = normalizeCourseWorkflow(course);
+  const isRevision = Boolean(course.liveCourseId);
+  let publishedVersion: {
+    id: string;
+    title: string;
+    description?: string;
+    learningOutcomes?: string[];
+    curriculum: typeof curriculum;
+  } | null = null;
+  let changeSummary: string[] = [];
+
+  if (isRevision && course.liveCourseId) {
+    const live = await Course.findById(course.liveCourseId).lean();
+    if (live) {
+      const [liveModules, liveLessons] = await Promise.all([
+        Module.find({ courseId: live._id }).sort({ order: 1 }).lean(),
+        Lesson.find({ courseId: live._id }).sort({ order: 1 }).lean(),
+      ]);
+      publishedVersion = {
+        id: String(live._id),
+        title: live.title,
+        description: live.description,
+        learningOutcomes: live.learningOutcomes,
+        curriculum: liveModules.map((m) => ({
+          id: String(m._id),
+          title: m.title,
+          description: m.description,
+          order: m.order,
+          lessons: liveLessons
+            .filter((l) => String(l.moduleId) === String(m._id))
+            .map((l) => ({
+              id: String(l._id),
+              title: l.title,
+              description: l.description ?? l.content,
+              videoUrl: l.videoUrl,
+              durationMinutes: l.durationMinutes,
+              order: l.order,
+              quizzes: [],
+              assignments: [],
+              resources: [],
+            })),
+        })),
+      };
+
+      if (live.title !== course.title) changeSummary.push("~ Updated title");
+      if (live.description !== course.description) {
+        changeSummary.push("~ Updated description");
+      }
+      if (
+        JSON.stringify(live.learningOutcomes ?? []) !==
+        JSON.stringify(course.learningOutcomes ?? [])
+      ) {
+        changeSummary.push("~ Updated course objectives");
+      }
+      const liveLessonTitles = new Set(liveLessons.map((l) => l.title));
+      const revLessonTitles = new Set(lessons.map((l) => l.title));
+      for (const t of revLessonTitles) {
+        if (!liveLessonTitles.has(t)) changeSummary.push(`+ New lesson: ${t}`);
+      }
+      for (const t of liveLessonTitles) {
+        if (!revLessonTitles.has(t)) changeSummary.push(`- Removed lesson: ${t}`);
+      }
+      for (const q of quizzes) {
+        changeSummary.push(`+ Quiz in proposal: ${q.title}`);
+      }
+      if (!changeSummary.length) {
+        changeSummary.push("~ Curriculum or content updates");
+      }
+    }
+  }
+
   return {
     course: {
       id: String(course._id),
@@ -614,7 +708,10 @@ export async function getCourseReview(courseId: string) {
       currency: course.currency,
       thumbnailUrl: course.thumbnailUrl,
       bannerUrl: course.bannerUrl,
-      status: course.status,
+      status: wf.status,
+      reviewStatus: wf.reviewStatus,
+      isRevision,
+      liveCourseId: course.liveCourseId ? String(course.liveCourseId) : undefined,
       accessDuration: course.accessDuration,
       learningOutcomes: course.learningOutcomes,
       requirements: course.requirements,
@@ -630,6 +727,8 @@ export async function getCourseReview(courseId: string) {
       ).map(mapUserLite),
     },
     curriculum,
+    publishedVersion,
+    changeSummary,
     counts: {
       modules: modules.length,
       lessons: lessons.length,
@@ -652,6 +751,7 @@ export async function getCourseReview(courseId: string) {
 
 export const setCourseStatusSchema = z.object({
   status: z.enum(["draft", "published"]),
+  reason: z.string().min(1).max(2000).optional(),
 });
 
 export const replyDiscussionSchema = z.object({
@@ -696,51 +796,82 @@ export async function replyCourseDiscussion(
   };
 }
 
-/** Academic can set a course to Draft or Published (overrides pending review). */
+/** Academic can return to Draft (with feedback) or Publish (new course / changes). */
 export async function setCourseStatus(
   courseId: string,
   actorId: string,
   status: "draft" | "published",
+  reason?: string,
 ) {
   const course = await Course.findById(oid(courseId, "courseId"));
   if (!course) throw new AppError(404, "NOT_FOUND", "Course not found");
+  const isRevision = Boolean(course.liveCourseId);
 
-  const previous = course.status;
-  course.status = status;
   if (status === "published") {
-    course.publishedAt = new Date();
-    course.rejectionReason = undefined;
-  } else {
-    course.rejectionReason = undefined;
+    const published = await publishCourse(courseId, actorId);
+    for (const id of published.instructorIds ?? []) {
+      await createNotification({
+        userId: String(id),
+        title: isRevision ? "Course changes published" : "Course published",
+        body: isRevision
+          ? `Your changes to “${published.title}” are now live.`
+          : `“${published.title}” is now published.`,
+        type: "course",
+        meta: { courseId: String(published._id) },
+      });
+    }
+    return published;
   }
-  await course.save();
 
-  await writeAuditLog({
-    actorId,
-    action: "courses.set_status",
-    resource: "Course",
-    resourceId: courseId,
-    meta: { from: previous, to: status },
+  const feedback = reason?.trim();
+  if (!feedback) {
+    throw new AppError(
+      400,
+      "FEEDBACK_REQUIRED",
+      "Feedback is required when saving as Draft",
+    );
+  }
+
+  await DiscussionMessage.create({
+    courseId: course._id,
+    authorId: oid(actorId),
+    body: `Changes Required\n\n${feedback}`,
   });
 
-  for (const id of course.instructorIds ?? []) {
+  const updated = await requestCourseChanges(courseId, actorId, feedback);
+  for (const id of updated.instructorIds ?? []) {
     await createNotification({
       userId: String(id),
-      title:
-        status === "published" ? "Course published" : "Course set to draft",
-      body:
-        status === "published"
-          ? `“${course.title}” is now published.`
-          : `“${course.title}” was moved to draft by Academic.`,
+      title: isRevision
+        ? "Published changes returned to Draft"
+        : "Course returned to Draft",
+      body: feedback.slice(0, 200),
       type: "course",
       meta: { courseId },
     });
   }
-
-  return course;
+  return updated;
 }
 
 export async function approveCourse(courseId: string, actorId: string) {
+  const course = await academicApproveCourse(courseId, actorId);
+  const instructors = await User.find({
+    _id: { $in: course.instructorIds ?? [] },
+  });
+  for (const ins of instructors) {
+    await createNotification({
+      userId: String(ins._id),
+      title: "Course published",
+      body: `“${course.title}” is now live for students.`,
+      type: "course",
+      meta: { courseId: String(course._id) },
+    });
+  }
+  return course;
+}
+
+/** Super Admin: publish pending course (or publish draft changes). */
+export async function publishApprovedCourse(courseId: string, actorId: string) {
   const course = await publishCourse(courseId, actorId);
   const instructors = await User.find({
     _id: { $in: course.instructorIds ?? [] },
@@ -749,9 +880,9 @@ export async function approveCourse(courseId: string, actorId: string) {
     await createNotification({
       userId: String(ins._id),
       title: "Course published",
-      body: `“${course.title}” was approved and is now published.`,
+      body: `“${course.title}” is now live for students.`,
       type: "course",
-      meta: { courseId },
+      meta: { courseId: String(course._id) },
     });
   }
   return course;
@@ -782,30 +913,22 @@ export async function rejectCourse(
   actorId: string,
   reason: string,
 ) {
-  const course = await Course.findById(courseId);
-  if (!course) throw new AppError(404, "NOT_FOUND", "Course not found");
-  if (course.status !== "pending_review") {
-    throw new AppError(
-      400,
-      "INVALID_STATUS",
-      "Only courses pending review can be rejected",
-    );
-  }
-  course.status = "rejected";
-  course.rejectionReason = reason.trim();
-  await course.save();
-  await writeAuditLog({
-    actorId,
-    action: "courses.reject",
-    resource: "Course",
-    resourceId: courseId,
-    meta: { reason },
-  });
+  return requestChanges(courseId, actorId, reason);
+}
+
+export async function disablePublishedCourse(
+  courseId: string,
+  actorId: string,
+  disabled = true,
+) {
+  const course = await disableCourse(courseId, actorId, disabled);
   for (const id of course.instructorIds ?? []) {
     await createNotification({
       userId: String(id),
-      title: "Course rejected",
-      body: reason.trim(),
+      title: disabled ? "Course disabled" : "Course re-enabled",
+      body: disabled
+        ? `“${course.title}” was disabled and is no longer visible to students.`
+        : `“${course.title}” is visible to students again.`,
       type: "course",
       meta: { courseId },
     });
@@ -1409,16 +1532,26 @@ export async function getReports() {
       total: instructors.length,
       active: instructors.filter((i) => i.isActive).length,
       published: courses.filter((c) => c.status === "published").length,
-      pending: courses.filter((c) => c.status === "pending_review").length,
+      pending: courses.filter(
+        (c) =>
+          c.status === "in_progress" ||
+          String(c.status) === "pending_review" ||
+          c.reviewStatus === "pending_review",
+      ).length,
       draft: courses.filter((c) => c.status === "draft").length,
       totalStudents: enrollments.length,
     },
     courses: {
       total: courses.filter((c) =>
-        ["draft", "pending_review", "published"].includes(c.status),
+        ["draft", "in_progress", "published"].includes(c.status),
       ).length,
       published: courses.filter((c) => c.status === "published").length,
-      pending: courses.filter((c) => c.status === "pending_review").length,
+      pending: courses.filter(
+        (c) =>
+          c.status === "in_progress" ||
+          String(c.status) === "pending_review" ||
+          c.reviewStatus === "pending_review",
+      ).length,
       draft: courses.filter((c) => c.status === "draft").length,
     },
     certificates: {

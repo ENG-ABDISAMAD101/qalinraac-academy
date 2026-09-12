@@ -23,8 +23,8 @@ import {
   Wallet,
   KeyRound,
 } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
-import { useAuth } from "@/lib/auth-context";
+import type { ReactNode } from "react";
+import { useRequireAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { SuperAdminHeader } from "@/components/super-admin/SuperAdminHeader";
 import { Button } from "@/components/ui/button";
@@ -118,15 +118,12 @@ const NAV_GROUPS = [
 export function SuperAdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading, logout, usingDemo } = useAuth();
+  const { user, ready, logout, usingDemo } = useRequireAuth([
+    "Super Admin",
+    "SuperAdmin",
+  ]);
 
-  useEffect(() => {
-    if (!loading && (!user || (user.role !== "Super Admin" && user.role !== "SuperAdmin"))) {
-      router.replace("/auth/login");
-    }
-  }, [loading, user, router]);
-
-  if (loading || !user) {
+  if (!ready || !user) {
     return <PageLoader label="Loading super admin portal" />;
   }
 

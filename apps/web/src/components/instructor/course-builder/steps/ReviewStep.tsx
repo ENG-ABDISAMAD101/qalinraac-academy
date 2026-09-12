@@ -23,6 +23,7 @@ import {
   type BuilderStepNumber,
   type StepProps,
 } from "../types";
+import { parseYouTubeUrl } from "./IntroVideoStep";
 
 type ReviewStepProps = StepProps & {
   status: string;
@@ -40,8 +41,12 @@ const CHECK_ROWS: {
   { key: "requirements", label: "Requirements", step: 4 },
   { key: "curriculum", label: "Curriculum", step: 5 },
   { key: "lessons", label: "Lessons", step: 6 },
-  { key: "assessment", label: "Assessment", step: 7 },
-  { key: "pricing", label: "Pricing", step: 8 },
+  {
+    key: "assessment",
+    label: "Assessment (optional — Quizzes / Assignments pages)",
+    step: 7,
+  },
+  { key: "pricing", label: "Pricing", step: 9 },
 ];
 
 function languageDisplay(value?: string) {
@@ -84,6 +89,7 @@ export function ReviewStep({
   const thumb = mediaPublicUrl(draft.thumbnailUrl || undefined);
   const missing = data?.missing ?? [];
   const completeness = Math.min(100, Math.max(0, data?.completeness ?? 0));
+  const intro = parseYouTubeUrl(draft.promoVideoUrl || "");
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -203,25 +209,22 @@ export function ReviewStep({
                     ))}
                   </ul>
                 </div>
-              ) : status !== "pending_review" ? (
+              ) : status !== "in_progress" && status !== "pending_review" ? (
                 <div className="mt-5 rounded-2xl bg-primary-soft p-4">
                   <p className="text-sm font-bold text-primary">
                     This course is ready to mark as complete.
                   </p>
                   <p className="mt-1 text-sm text-primary/80">
-                    {status === "published"
-                      ? "Use Mark Course as Complete in the header to send updates back for Academic review."
-                      : "Use Mark Course as Complete in the header or footer when you are happy with the content. Editing locks while review is in progress."}
+                    Use Mark as Completed when you are happy with the content.
+                    Editing locks while review is in progress.
                   </p>
                 </div>
               ) : null}
 
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="mt-5 grid grid-cols-2 gap-3">
                 {[
                   { label: "Sections", value: data.counts.modules },
                   { label: "Lessons", value: data.counts.lessons },
-                  { label: "Quizzes", value: data.counts.quizzes },
-                  { label: "Assignments", value: data.counts.assignments },
                 ].map((stat) => (
                   <div
                     key={stat.label}
@@ -234,14 +237,21 @@ export function ReviewStep({
                   </div>
                 ))}
               </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Quizzes and assignments are managed on their own pages and are
+                not required to mark the course complete.
+              </p>
 
-              {!readOnly && data.canSubmit && status !== "pending_review" ? (
+              {!readOnly &&
+              data.canSubmit &&
+              status !== "in_progress" &&
+              status !== "pending_review" ? (
                 <p className="mt-5 text-sm text-muted-foreground">
                   When ready, click{" "}
                   <span className="font-semibold text-foreground">
-                    Mark Course as Complete
+                    Mark as Completed
                   </span>{" "}
-                  above.
+                  at the bottom of this page.
                 </p>
               ) : null}
             </>
@@ -290,6 +300,10 @@ export function ReviewStep({
             {
               label: "Access",
               value: accessDurationDisplay(draft.accessDuration),
+            },
+            {
+              label: "Intro video",
+              value: intro ? "YouTube linked" : "Not set",
             },
           ].map((row) => (
             <div key={row.label} className="flex justify-between gap-3">

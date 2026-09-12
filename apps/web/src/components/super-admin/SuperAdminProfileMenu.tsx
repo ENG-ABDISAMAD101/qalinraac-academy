@@ -27,7 +27,7 @@ export function SuperAdminProfileMenu() {
     .toUpperCase();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"

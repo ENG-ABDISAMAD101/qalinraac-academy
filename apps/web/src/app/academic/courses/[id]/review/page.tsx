@@ -73,6 +73,9 @@ type CourseReviewPayload = {
     id?: string;
     title?: string;
     status?: string;
+    reviewStatus?: string;
+    isRevision?: boolean;
+    liveCourseId?: string;
     category?: string;
     level?: string;
     language?: string;
@@ -86,14 +89,23 @@ type CourseReviewPayload = {
     instructors?: InstructorLite[];
   };
   curriculum?: CurriculumModule[];
+  publishedVersion?: {
+    id: string;
+    title: string;
+    description?: string;
+    learningOutcomes?: string[];
+  } | null;
+  changeSummary?: string[];
   counts?: { modules?: number; lessons?: number };
   discussions?: DiscussionRow[];
 };
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
+  in_progress: "Pending Review",
   pending_review: "Pending Review",
   published: "Published",
+  archived: "Archived",
 };
 
 function accessLabel(value?: string) {
@@ -131,6 +143,7 @@ export default function AcademicCourseReviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saveAs, setSaveAs] = useState<"draft" | "published">("published");
+  const [draftReason, setDraftReason] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [progressOpen, setProgressOpen] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -191,6 +204,12 @@ export default function AcademicCourseReviewPage() {
   }
 
   function openConfirm() {
+    if (saveAs === "draft" && !draftReason.trim()) {
+      setProgressError("");
+      setReplyError("Feedback is required when saving as Draft.");
+      return;
+    }
+    setReplyError("");
     cancelledRef.current = false;
     resetProgress();
     setConfirmOpen(true);
@@ -213,7 +232,11 @@ export default function AcademicCourseReviewPage() {
       setProgress(100);
       setSubmitting(true);
       try {
-        await academicSetCourseStatusRequest(courseId, saveAs);
+        await academicSetCourseStatusRequest(
+          courseId,
+          saveAs,
+          saveAs === "draft" ? draftReason.trim() : undefined,
+        );
         if (cancelledRef.current) {
           resetProgress();
           setProgressOpen(false);
@@ -268,7 +291,11 @@ export default function AcademicCourseReviewPage() {
   const course = data?.course;
   const title = course?.title ?? "Course";
   const status = course?.status ?? "";
-  const statusLabel = STATUS_LABEL[status] ?? status;
+  const isRevision = Boolean(course?.isRevision);
+  const statusLabel = isRevision
+    ? "Pending Changes"
+    : (STATUS_LABEL[status] ?? status);
+  const changeSummary = data?.changeSummary ?? [];
   const thumb = mediaPublicUrl(course?.bannerUrl ?? course?.thumbnailUrl);
   const price =
     (course?.priceCents ?? 0) === 0
@@ -533,18 +560,38 @@ export default function AcademicCourseReviewPage() {
               <aside className="card-soft h-fit space-y-5 p-5">
                 <div>
                   <h2 className="text-base font-bold text-primary dark:text-foreground">
-                    Save as
+                    {isRevision ? "Review changes" : "Save as"}
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Academic can set this course to Draft or Published.
+                    {isRevision
+                      ? "Publish changes onto the live course, or return them to Draft with feedback."
+                      : "Publish the course for students, or return it to Draft with required feedback."}
                   </p>
                 </div>
+
+                {isRevision && changeSummary.length > 0 ? (
+                  <div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Proposed changes
+                    </p>
+                    <ul className="mt-2 space-y-1.5 text-sm text-foreground">
+                      {changeSummary.map((line) => (
+                        <li key={line} className="font-medium">
+                          {line}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
 
                 <div className="grid grid-cols-2 gap-2">
                   {(
                     [
-                      ["draft", "Draft"],
-                      ["published", "Publish"],
+                      ["draft", isRevision ? "Save Changes as Draft" : "Save as Draft"],
+                      [
+                        "published",
+                        isRevision ? "Publish Changes" : "Publish Course",
+                      ],
                     ] as const
                   ).map(([value, label]) => (
                     <button
@@ -552,7 +599,7 @@ export default function AcademicCourseReviewPage() {
                       type="button"
                       onClick={() => setSaveAs(value)}
                       className={cn(
-                        "rounded-2xl border px-4 py-3 text-sm font-semibold transition",
+                        "rounded-2xl border px-3 py-3 text-left text-sm font-semibold transition",
                         saveAs === value
                           ? "border-primary bg-primary text-primary-foreground"
                           : "border-border bg-background text-muted-foreground hover:text-foreground",
@@ -563,11 +610,27 @@ export default function AcademicCourseReviewPage() {
                   ))}
                 </div>
 
+                {saveAs === "draft" ? (
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-primary dark:text-foreground">
+                      Changes Required
+                    </p>
+                    <Textarea
+                      value={draftReason}
+                      onChange={(e) => setDraftReason(e.target.value)}
+                      placeholder="Explain what the instructor must change before resubmitting…"
+                      rows={4}
+                      required
+                    />
+                  </div>
+                ) : null}
+
                 <Button
                   type="button"
                   className="w-full"
                   variant="secondary"
                   onClick={openConfirm}
+                  disabled={saveAs === "draft" && !draftReason.trim()}
                 >
                   Continue
                 </Button>

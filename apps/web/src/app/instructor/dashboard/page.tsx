@@ -6,42 +6,31 @@ import { useEffect, useState } from "react";
 import {
   BookOpen,
   ClipboardList,
+  Eye,
+  Pencil,
   Plus,
   Wallet,
   Banknote,
 } from "lucide-react";
-import {
-  InstructorShell,
-  statusTone,
-} from "@/components/instructor/InstructorShell";
+import { InstructorShell } from "@/components/instructor/InstructorShell";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
   formatMoney,
   getApiErrorMessage,
   instructorDashboardRequest,
+  instructorOpenCourseEditorRequest,
   mediaPublicUrl,
   type InstructorDashboardData,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { cn } from "@/lib/utils";
-
-function courseStatusLabel(status: string) {
-  const map: Record<string, string> = {
-    draft: "Draft",
-    pending_review: "Pending Review",
-    published: "Published",
-    rejected: "Rejected",
-    archived: "Archived",
-  };
-  return map[status] ?? status;
-}
 
 export default function InstructorDashboardPage() {
   const { user } = useAuth();
   const [data, setData] = useState<InstructorDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editBusyId, setEditBusyId] = useState<string | null>(null);
 
   const name = user?.fullName ?? "Instructor";
 
@@ -77,17 +66,15 @@ export default function InstructorDashboardPage() {
   const statCards = [
     { label: "Total Courses", value: stats?.totalCourses ?? 0 },
     { label: "Published", value: stats?.publishedCourses ?? 0 },
-    { label: "Pending Review", value: stats?.pendingCourses ?? 0 },
-    { label: "Drafts", value: stats?.draftCourses ?? 0 },
-    { label: "Rejected", value: stats?.rejectedCourses ?? 0 },
-    { label: "Archived", value: stats?.archivedCourses ?? 0 },
+    { label: "In Progress", value: stats?.inProgressCourses ?? 0 },
+    { label: "Draft", value: stats?.draftCourses ?? 0 },
     { label: "Total Students", value: stats?.totalStudents ?? 0 },
     {
       label: "Total Earnings",
       value: formatMoney(stats?.totalEarnings ?? 0),
     },
     {
-      label: "Available Balance",
+      label: "Balance",
       value: formatMoney(stats?.availableBalance ?? 0),
     },
     {
@@ -95,6 +82,17 @@ export default function InstructorDashboardPage() {
       value: formatMoney(stats?.pendingWithdrawal ?? 0),
     },
   ];
+
+  async function onEditCourse(courseId: string) {
+    setEditBusyId(courseId);
+    try {
+      const draft = await instructorOpenCourseEditorRequest(courseId);
+      window.location.href = `/instructor/courses/${draft.id}/builder`;
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Could not open course editor."));
+      setEditBusyId(null);
+    }
+  }
 
   return (
     <InstructorShell>
@@ -170,14 +168,13 @@ export default function InstructorDashboardPage() {
                 <Button asChild variant="secondary">
                   <Link href="/instructor/withdrawals">
                     <Banknote className="h-4 w-4" />
-                    Request Withdrawal
+                    Withdrawal
                   </Link>
                 </Button>
               </div>
               {!canCreate ? (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Course limit reached ({courseLimit}). Rejected courses do not
-                  consume a slot.
+                  Course limit reached ({courseLimit}).
                 </p>
               ) : null}
             </section>
@@ -188,12 +185,12 @@ export default function InstructorDashboardPage() {
               </h2>
               {recent.length === 0 ? (
                 <div className="card-soft px-5 py-10 text-center text-sm text-muted-foreground">
-                  No courses yet. Create your first course to get started.
+                  No published courses yet. Create and publish a course to see
+                  it here.
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {recent.map((course) => {
-                    const label = courseStatusLabel(course.status);
                     const thumb = mediaPublicUrl(course.thumbnailUrl);
                     return (
                       <article
@@ -210,7 +207,7 @@ export default function InstructorDashboardPage() {
                               unoptimized
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center bg-primary/5 text-sm font-semibold text-primary">
+                            <div className="flex h-full items-center justify-center bg-muted text-sm font-semibold text-primary dark:bg-[#1A1A1A]">
                               {course.title}
                             </div>
                           )}
@@ -220,39 +217,49 @@ export default function InstructorDashboardPage() {
                             <h3 className="font-bold text-foreground">
                               {course.title}
                             </h3>
-                            <span
-                              className={cn(
-                                "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold",
-                                statusTone(label),
-                              )}
-                            >
-                              {label}
+                            <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold text-foreground dark:bg-[#1A1A1A]">
+                              Published
                             </span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Button asChild size="sm" variant="outline">
-                              <Link href={`/instructor/courses/${course.id}`}>
-                                View
+                          {course.description ? (
+                            <p className="line-clamp-2 text-sm text-muted-foreground">
+                              {course.description}
+                            </p>
+                          ) : null}
+                          <p className="text-xs text-muted-foreground">
+                            {course.lessons ?? 0}{" "}
+                            {(course.lessons ?? 0) === 1 ? "lesson" : "lessons"}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              asChild
+                              size="icon"
+                              variant="outline"
+                              className="h-9 w-9"
+                              title="View course"
+                            >
+                              <Link
+                                href={`/instructor/courses/${course.id}`}
+                                aria-label={`View ${course.title}`}
+                              >
+                                <Eye className="h-4 w-4" />
                               </Link>
                             </Button>
-                            {course.status === "pending_review" ||
-                            course.status === "archived" ? (
-                              <Button asChild size="sm" variant="ghost">
-                                <Link
-                                  href={`/instructor/courses/${course.id}/builder`}
-                                >
-                                  View Builder
-                                </Link>
-                              </Button>
-                            ) : (
-                              <Button asChild size="sm" variant="ghost">
-                                <Link
-                                  href={`/instructor/courses/${course.id}/builder`}
-                                >
-                                  Continue Builder
-                                </Link>
-                              </Button>
-                            )}
+                            <Button
+                              type="button"
+                              size="icon"
+                              className="h-9 w-9"
+                              title="Edit course"
+                              disabled={editBusyId === course.id}
+                              onClick={() => void onEditCourse(course.id)}
+                              aria-label={`Edit ${course.title}`}
+                            >
+                              {editBusyId === course.id ? (
+                                <Spinner className="sm on-primary" label="Opening" />
+                              ) : (
+                                <Pencil className="h-4 w-4" />
+                              )}
+                            </Button>
                           </div>
                         </div>
                       </article>

@@ -14,7 +14,6 @@ import { Spinner } from "@/components/ui/spinner";
 import {
   formatNotificationTime,
   markAllNotificationsReadRequest,
-  markNotificationReadRequest,
   notificationsList,
   type AppNotification,
 } from "@/lib/api";
@@ -51,6 +50,7 @@ export function NotificationsMenu() {
   );
 
   async function markAllRead() {
+    if (unreadCount === 0) return;
     const prev = items;
     setItems((list) => list.map((n) => ({ ...n, read: true })));
     try {
@@ -60,34 +60,16 @@ export function NotificationsMenu() {
     }
   }
 
-  async function markOneRead(id: string) {
-    const target = items.find((n) => n.id === id);
-    if (!target || target.read) return;
-    setItems((list) =>
-      list.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
-    try {
-      await markNotificationReadRequest(id);
-    } catch {
-      setItems((list) =>
-        list.map((n) => (n.id === id ? { ...n, read: false } : n)),
-      );
-    }
-  }
-
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <NotificationBellTrigger count={unreadCount} />
+        <NotificationBellTrigger count={unreadCount} className="size-9" />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
         align="end"
-        sideOffset={10}
-        className={cn(
-          "w-[min(100vw-1.5rem,24rem)] overflow-hidden rounded-2xl p-0 shadow-xl",
-          open && "brand-notif-spin",
-        )}
+        sideOffset={8}
+        className="w-[min(100vw-1.5rem,24rem)] overflow-hidden rounded-2xl p-0 shadow-xl"
       >
         <DropdownMenuLabel className="flex items-center justify-between gap-3 px-4 py-3 font-normal">
           <p className="text-sm font-semibold text-primary">
@@ -100,9 +82,10 @@ export function NotificationsMenu() {
               e.preventDefault();
               void markAllRead();
             }}
-            className="rounded-md px-1 text-xs font-semibold text-primary transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            disabled={unreadCount === 0}
+            className="rounded-md px-1 text-xs font-semibold text-primary transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default disabled:opacity-40 disabled:no-underline"
           >
-            Mark as read
+            Mark all as read
           </button>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="my-0" />
@@ -118,33 +101,30 @@ export function NotificationsMenu() {
         ) : (
           <ul className="scrollbar-thin max-h-[min(70vh,28rem)] overflow-y-auto py-1">
             {items.map((n) => (
-              <li key={n.id}>
-                <button
-                  type="button"
-                  onClick={() => void markOneRead(n.id)}
-                  className={cn(
-                    "flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none",
-                    !n.read && "bg-primary-soft/40 dark:bg-secondary/50",
-                  )}
-                >
-                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold uppercase text-primary">
-                    {n.type.slice(0, 2)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-foreground">
-                      {n.title}
-                    </p>
-                    <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
-                      {n.body}
-                    </p>
-                    <p className="mt-1.5 text-xs text-muted-foreground">
-                      {formatNotificationTime(n.createdAt)}
-                    </p>
-                  </div>
-                  {!n.read ? (
-                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
-                  ) : null}
-                </button>
+              <li
+                key={n.id}
+                className={cn(
+                  "flex w-full gap-3 px-4 py-3 text-left",
+                  !n.read && "bg-primary-soft/40 dark:bg-secondary/50",
+                )}
+              >
+                <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold uppercase text-primary">
+                  {n.type.slice(0, 2)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground">
+                    {n.title}
+                  </p>
+                  <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
+                    {n.body}
+                  </p>
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {formatNotificationTime(n.createdAt)}
+                  </p>
+                </div>
+                {!n.read ? (
+                  <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                ) : null}
               </li>
             ))}
           </ul>

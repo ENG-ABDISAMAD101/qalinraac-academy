@@ -75,9 +75,9 @@ export function FinanceNotificationsMenu() {
   }
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <NotificationBellTrigger count={unreadCount} />
+        <NotificationBellTrigger count={unreadCount} className="size-9" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"

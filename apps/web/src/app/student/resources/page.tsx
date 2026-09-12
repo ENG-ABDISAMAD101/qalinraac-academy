@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Eye, Search } from "lucide-react";
+import { Download, Plus, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { StudentShell } from "@/components/student/StudentShell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import {
-  api,
   downloadFileById,
   getApiErrorMessage,
+  mediaPublicUrl,
   studentResourcesRequest,
   type StudentResource,
 } from "@/lib/api";
@@ -64,27 +64,18 @@ export default function ResourcesPage() {
       (r) =>
         r.title.toLowerCase().includes(needle) ||
         r.courseTitle.toLowerCase().includes(needle) ||
-        r.originalName.toLowerCase().includes(needle),
+        r.originalName.toLowerCase().includes(needle) ||
+        (r.mentor?.fullName.toLowerCase().includes(needle) ?? false),
     );
   }, [resources, q]);
 
-  async function handleFile(fileId: string, action: "view" | "download") {
+  async function handleDownload(fileId: string, filename: string) {
     if (!fileId) return;
     setFileError("");
     try {
-      if (action === "download") {
-        await downloadFileById(fileId);
-        return;
-      }
-      const response = await api.get<Blob>(`/files/${fileId}/download`, {
-        responseType: "blob",
-        timeout: 120_000,
-      });
-      const url = URL.createObjectURL(response.data);
-      window.open(url, "_blank", "noopener,noreferrer");
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      await downloadFileById(fileId, filename);
     } catch {
-      setFileError("Could not open the file. Try again.");
+      setFileError("Could not download the file. Try again.");
     }
   }
 
@@ -126,7 +117,7 @@ export default function ResourcesPage() {
             {error}
           </p>
         ) : list.length === 0 ? (
-          <div className="card-soft px-6 py-14 text-center">
+          <div className="rounded-2xl border border-border bg-card px-6 py-14 text-center">
             <h2 className="font-display text-xl font-bold text-primary dark:text-foreground">
               No resources available
             </h2>
@@ -136,26 +127,37 @@ export default function ResourcesPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="space-y-3">
             {list.map((r) => {
               const open = openId === r.id;
               const badge = typeBadge(r.mimeType, r.originalName);
+              const instructorName = r.mentor?.fullName ?? "Instructor";
               return (
-                <article key={r.id} className="card-soft overflow-hidden">
+                <article
+                  key={r.id}
+                  className="overflow-hidden rounded-2xl border border-border bg-card"
+                >
                   <button
                     type="button"
                     onClick={() => setOpenId(open ? null : r.id)}
-                    className="w-full p-5 text-left transition-colors hover:bg-canvas/50 dark:hover:bg-muted/20"
+                    className="flex w-full items-start justify-between gap-3 p-4 text-left sm:p-5"
+                    aria-expanded={open}
                   >
-                    <p className="text-xs font-bold uppercase tracking-wide text-primary">
-                      {badge}
-                    </p>
-                    <h2 className="mt-2 text-lg font-bold text-ink dark:text-foreground">
-                      {r.title}
-                    </h2>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {open ? "Hide details" : "View details"}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                        {badge} · {r.originalName}
+                      </p>
+                      <h2 className="mt-1 text-lg font-bold text-foreground">
+                        {r.title}
+                      </h2>
+                    </div>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border">
+                      {open ? (
+                        <X className="h-4 w-4" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
+                    </span>
                   </button>
 
                   <div
@@ -165,59 +167,55 @@ export default function ResourcesPage() {
                     )}
                   >
                     <div className="overflow-hidden">
-                      <div className="space-y-4 border-t border-border/60 px-5 pb-5 pt-4">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Course</p>
-                          <p className="text-sm font-semibold text-ink dark:text-foreground">
-                            {r.courseTitle}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 border border-border">
-                            <AvatarImage
-                              src={r.mentor?.avatarUrl}
-                              alt={r.mentor?.fullName ?? "Mentor"}
-                            />
-                            <AvatarFallback>
-                              {initialsFromName(r.mentor?.fullName ?? "Mentor")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Mentor</p>
-                            <p className="text-sm font-semibold text-ink dark:text-foreground">
-                              {r.mentor?.fullName ?? "Instructor"}
+                      <div className="flex flex-col gap-4 border-t border-border px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+                        <div className="grid min-w-0 flex-1 gap-4 sm:grid-cols-3">
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Course
+                            </p>
+                            <p className="mt-1 truncate text-sm font-bold text-foreground">
+                              {r.courseTitle}
+                            </p>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Instructor
+                            </p>
+                            <div className="mt-1.5 flex items-center gap-2.5">
+                              <Avatar className="h-8 w-8 border border-border">
+                                <AvatarImage
+                                  src={mediaPublicUrl(r.mentor?.avatarUrl)}
+                                  alt={instructorName}
+                                />
+                                <AvatarFallback className="text-[10px] font-semibold text-foreground">
+                                  {initialsFromName(instructorName)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <p className="truncate text-sm font-bold text-foreground">
+                                {instructorName}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Resource file
+                            </p>
+                            <p className="mt-1 truncate text-sm font-bold text-foreground">
+                              {r.originalName}
                             </p>
                           </div>
                         </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Filename</p>
-                          <p className="truncate text-sm font-medium text-ink dark:text-foreground">
-                            {r.originalName}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            aria-label="View resource"
-                            disabled={!r.fileAssetId}
-                            onClick={() => void handleFile(r.fileAssetId, "view")}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            type="button"
-                            size="icon"
-                            aria-label="Download resource"
-                            disabled={!r.fileAssetId}
-                            onClick={() =>
-                              void handleFile(r.fileAssetId, "download")
-                            }
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Button
+                          type="button"
+                          className="shrink-0 rounded-xl"
+                          disabled={!r.fileAssetId}
+                          onClick={() =>
+                            void handleDownload(r.fileAssetId, r.originalName)
+                          }
+                        >
+                          <Download className="h-4 w-4" />
+                          Download
+                        </Button>
                       </div>
                     </div>
                   </div>

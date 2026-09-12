@@ -245,17 +245,13 @@ export default function InstructorStudentsPage() {
                     <td className="px-5 py-4">
                       <span
                         className={cn(
-                          "rounded-full px-3 py-1 text-xs font-bold capitalize",
-                          statusTone(
-                            s.status === "active"
-                              ? "Published"
-                              : s.status === "completed"
-                                ? "Completed"
-                                : "Pending",
-                          ),
+                          "rounded-full px-3 py-1 text-xs font-bold",
+                          s.status === "active"
+                            ? statusTone("Published")
+                            : "bg-muted text-muted-foreground",
                         )}
                       >
-                        {s.status}
+                        {s.status === "active" ? "Active" : "Inactive"}
                       </span>
                     </td>
                   </tr>

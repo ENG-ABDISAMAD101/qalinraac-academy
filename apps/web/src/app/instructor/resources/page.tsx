@@ -1,14 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Download,
-  FileText,
-  FolderOpen,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { Download, Eye, FolderOpen, Plus, Search, Trash2, X } from "lucide-react";
 import { InstructorShell } from "@/components/instructor/InstructorShell";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,10 +27,12 @@ import {
   instructorCreateResourceRequest,
   instructorDeleteResourceRequest,
   instructorResourcesRequest,
+  mediaPublicUrl,
   uploadFileRequest,
   type InstructorCourse,
   type InstructorResource,
 } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 function typeBadge(mimeType: string, originalName: string) {
   const name = originalName.toLowerCase();
@@ -68,6 +63,7 @@ export default function InstructorResourcesPage() {
   const [items, setItems] = useState<InstructorResource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [courses, setCourses] = useState<InstructorCourse[]>([]);
@@ -320,68 +316,134 @@ export default function InstructorResourcesPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {items.map((resource) => (
-              <article key={resource.id} className="card-soft flex flex-col p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="rounded-full bg-primary/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-primary dark:bg-primary/15 dark:text-primary">
-                    {typeBadge(resource.mimeType, resource.originalName)}
-                  </span>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <h2 className="mt-3 line-clamp-2 font-semibold text-foreground">
-                  {resource.title}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {resource.courseTitle}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {[resource.moduleTitle, resource.lessonTitle]
-                    .filter(Boolean)
-                    .join(" · ") || "Course resource"}
-                </p>
-                <p className="mt-2 truncate text-xs text-muted-foreground">
-                  {resource.originalName}
-                  {resource.file.size
-                    ? ` · ${formatBytes(resource.file.size)}`
-                    : ""}
-                </p>
-                <div className="mt-auto flex flex-wrap gap-2 pt-4">
-                  <Button
+          <ul className="space-y-3">
+            {items.map((resource) => {
+              const open = openId === resource.id;
+              const viewUrl = mediaPublicUrl(resource.file.url);
+              return (
+                <li
+                  key={resource.id}
+                  className="overflow-hidden rounded-2xl border border-border bg-card"
+                >
+                  <button
                     type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      void downloadFileById(
-                        resource.file.id,
-                        resource.originalName,
-                      ).catch((err) =>
-                        setError(
-                          getApiErrorMessage(
-                            err,
-                            "Could not download this resource.",
-                          ),
-                        ),
-                      )
-                    }
+                    className="flex w-full items-center justify-between gap-3 p-4 text-left sm:p-5"
+                    onClick={() => setOpenId(open ? null : resource.id)}
+                    aria-expanded={open}
                   >
-                    <Download className="h-4 w-4" />
-                    Download
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="text-muted-foreground hover:text-destructive"
-                    onClick={() => setPendingDelete(resource)}
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold text-foreground">
+                          {resource.originalName || resource.title}
+                        </p>
+                        <span className="rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-bold uppercase text-muted-foreground dark:bg-[#1A1A1A]">
+                          {typeBadge(resource.mimeType, resource.originalName)}
+                        </span>
+                      </div>
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        {resource.title}
+                      </p>
+                    </div>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border">
+                      {open ? (
+                        <X className="h-4 w-4" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
+                    </span>
+                  </button>
+
+                  <div
+                    className={cn(
+                      "grid transition-[grid-template-rows] duration-200",
+                      open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                    )}
                   >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </Button>
-                </div>
-              </article>
-            ))}
-          </div>
+                    <div className="overflow-hidden">
+                      <div className="space-y-3 border-t border-border px-4 pb-5 pt-3 sm:px-5">
+                        <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                          <div>
+                            <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Course
+                            </dt>
+                            <dd className="mt-0.5 font-medium text-foreground">
+                              {resource.courseTitle}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Lesson
+                            </dt>
+                            <dd className="mt-0.5 font-medium text-foreground">
+                              {[resource.moduleTitle, resource.lessonTitle]
+                                .filter(Boolean)
+                                .join(" · ") || "—"}
+                            </dd>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                              File
+                            </dt>
+                            <dd className="mt-0.5 font-medium text-foreground">
+                              {resource.originalName}
+                              {resource.file.size
+                                ? ` · ${formatBytes(resource.file.size)}`
+                                : ""}
+                            </dd>
+                          </div>
+                        </dl>
+                        <div className="flex flex-wrap gap-2">
+                          {viewUrl ? (
+                            <Button asChild size="sm" variant="outline">
+                              <a
+                                href={viewUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Eye className="h-4 w-4" />
+                                View
+                              </a>
+                            </Button>
+                          ) : null}
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              void downloadFileById(
+                                resource.file.id,
+                                resource.originalName,
+                              ).catch((err) =>
+                                setError(
+                                  getApiErrorMessage(
+                                    err,
+                                    "Could not download this resource.",
+                                  ),
+                                ),
+                              )
+                            }
+                          >
+                            <Download className="h-4 w-4" />
+                            Download
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => setPendingDelete(resource)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
 
@@ -536,7 +598,6 @@ export default function InstructorResourcesPage() {
             <Button
               type="button"
               variant="outline"
-              className="h-10 rounded-xl px-5"
               onClick={() => setPendingDelete(null)}
             >
               Cancel
@@ -544,7 +605,6 @@ export default function InstructorResourcesPage() {
             <Button
               type="button"
               variant="destructive"
-              className="h-10 rounded-xl px-5"
               disabled={deleting}
               onClick={() => void confirmDelete()}
             >

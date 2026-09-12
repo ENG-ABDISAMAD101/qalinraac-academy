@@ -87,3 +87,15 @@ studentsRouter.get(
   requirePermission("progress:write"),
   asyncHandler(controller.getSupport),
 );
+
+studentsRouter.patch(
+  "/me/support/:id",
+  requirePermission("progress:write"),
+  asyncHandler(controller.updateSupportStatus),
+);
+
+studentsRouter.post(
+  "/me/support/:id/replies",
+  requirePermission("progress:write"),
+  asyncHandler(controller.replySupport),
+);

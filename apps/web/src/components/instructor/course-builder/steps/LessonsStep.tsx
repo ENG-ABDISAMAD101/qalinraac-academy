@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Copy, GripVertical, Pencil, Plus, Trash2, Video } from "lucide-react";
+import { GripVertical, Pencil, Plus, Trash2, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,7 +44,6 @@ import {
   getApiErrorMessage,
   instructorAddLessonRequest,
   instructorDeleteLessonRequest,
-  instructorDuplicateLessonRequest,
   instructorReorderCurriculumRequest,
   instructorUpdateLessonRequest,
   type InstructorLesson,
@@ -76,14 +75,12 @@ function SortableLessonRow({
   index,
   readOnly,
   onEdit,
-  onDuplicate,
   onDelete,
 }: {
   lesson: InstructorLesson;
   index: number;
   readOnly: boolean;
   onEdit: () => void;
-  onDuplicate: () => void;
   onDelete: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -148,16 +145,6 @@ function SortableLessonRow({
             onClick={onEdit}
           >
             <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            aria-label={`Duplicate ${lesson.title}`}
-            onClick={onDuplicate}
-          >
-            <Copy className="h-4 w-4" />
           </Button>
           <Button
             type="button"
@@ -425,21 +412,13 @@ export function LessonsStep({
                             index={index}
                             readOnly={readOnly}
                             onEdit={() => openEditLesson(lesson)}
-                            onDuplicate={() =>
-                              void run(
-                                () =>
-                                  instructorDuplicateLessonRequest(lesson.id),
-                                "Could not duplicate the lesson.",
-                              )
-                            }
                             onDelete={() =>
                               setPendingDelete({
                                 id: lesson.id,
                                 title: lesson.title,
                               })
                             }
-                          />
-                        ))}
+                          />                        ))}
                       </ul>
                     </SortableContext>
                   </DndContext>
@@ -459,10 +438,14 @@ export function LessonsStep({
         <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {lessonDialog?.mode === "create" ? "Add lesson" : "Edit lesson"}
+              {lessonDialog?.mode === "create"
+                ? "Add lesson"
+                : "Edit lesson"}
             </DialogTitle>
             <DialogDescription>
-              Set the title, written content, and optional lesson video.
+              {lessonDialog?.mode === "create"
+                ? "Add a lesson to this section with optional video."
+                : "Update the lesson title, content, or video."}
             </DialogDescription>
           </DialogHeader>
 
@@ -474,6 +457,7 @@ export function LessonsStep({
                 value={lessonTitle}
                 maxLength={160}
                 disabled={readOnly}
+                placeholder="e.g. Introduction to the topic"
                 onChange={(e) => setLessonTitle(e.target.value)}
               />
             </div>
@@ -484,15 +468,15 @@ export function LessonsStep({
                 rows={8}
                 disabled={readOnly}
                 value={lessonContent}
-                placeholder="Write the lesson notes or transcript…"
+                placeholder="Write lesson notes or a short description…"
                 onChange={(e) => setLessonContent(e.target.value)}
                 className="min-h-[10rem]"
               />
             </div>
             <UploadCard
               kind="video"
-              label="Upload lesson video"
-              hint="MP4 or WebM · uploads to R2"
+              label="Lesson video"
+              hint="MP4 or WebM · optional"
               value={lessonVideoUrl || undefined}
               readOnly={readOnly}
               compact
@@ -504,7 +488,7 @@ export function LessonsStep({
           </div>
 
           <DialogFooter className="gap-2">
-            <Button type="button" variant="ghost" onClick={closeLessonDialog}>
+            <Button type="button" variant="outline" onClick={closeLessonDialog}>
               Cancel
             </Button>
             {!readOnly ? (
@@ -516,7 +500,7 @@ export function LessonsStep({
                 {lessonSaving ? (
                   <Spinner className="sm on-primary" label="Saving lesson" />
                 ) : null}
-                Save lesson
+                {lessonDialog?.mode === "create" ? "Add lesson" : "Save changes"}
               </Button>
             ) : null}
           </DialogFooter>

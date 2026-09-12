@@ -48,6 +48,12 @@ academicRouter.post(
   asyncHandler(controller.approveCourse),
 );
 academicRouter.post(
+  "/courses/:id/publish",
+  requireRole("SuperAdmin"),
+  requirePermission("courses:publish"),
+  asyncHandler(controller.publishApprovedCourse),
+);
+academicRouter.post(
   "/courses/:id/request-changes",
   requirePermission("courses:publish"),
   asyncHandler(controller.requestChanges),
@@ -63,6 +69,12 @@ academicRouter.post(
   requirePermission("courses:publish"),
   validate(setCourseStatusSchema),
   asyncHandler(controller.setCourseStatus),
+);
+academicRouter.post(
+  "/courses/:id/disable",
+  requireRole("SuperAdmin"),
+  requirePermission("courses:publish"),
+  asyncHandler(controller.disableCourse),
 );
 academicRouter.post(
   "/courses/:id/discussions",

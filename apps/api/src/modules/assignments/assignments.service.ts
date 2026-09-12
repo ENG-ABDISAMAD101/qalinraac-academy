@@ -68,6 +68,17 @@ export async function submitAssignment(
     throw new AppError(400, "EMPTY_SUBMISSION", "Provide content or fileAssetId");
   }
 
+  const existing = await Submission.findOne({ assignmentId, userId });
+  if (existing && existing.status !== "returned") {
+    throw new AppError(
+      400,
+      "ALREADY_SUBMITTED",
+      existing.status === "graded"
+        ? "This assignment was already graded. You cannot submit again."
+        : "You already submitted this assignment. Wait for instructor feedback.",
+    );
+  }
+
   const submission = await Submission.findOneAndUpdate(
     { assignmentId, userId },
     {

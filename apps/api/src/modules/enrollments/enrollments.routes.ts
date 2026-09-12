@@ -3,7 +3,7 @@ import { asyncHandler } from "../../lib/async-handler.js";
 import { authenticate, requirePermission } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
 import * as controller from "./enrollments.controller.js";
-import { enrollSchema } from "./enrollments.service.js";
+import { checkoutSchema, enrollSchema } from "./enrollments.service.js";
 
 export const enrollmentsRouter = Router();
 
@@ -13,6 +13,12 @@ enrollmentsRouter.post(
   "/",
   validate(enrollSchema),
   asyncHandler(controller.enroll),
+);
+
+enrollmentsRouter.post(
+  "/checkout",
+  validate(checkoutSchema),
+  asyncHandler(controller.checkout),
 );
 
 enrollmentsRouter.get("/mine", asyncHandler(controller.mine));

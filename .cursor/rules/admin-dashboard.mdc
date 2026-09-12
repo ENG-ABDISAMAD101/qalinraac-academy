@@ -5,22 +5,24 @@ alwaysApply: true
 
 # Admin Role
 
-Operations Manager only: monitor students/instructors/courses, support tickets, operational reports. No system config, finance, research, roles, or user creation.
+Operations Manager only: monitor students/instructors/courses/certificates, support tickets, operational reports. No system config, finance, research, roles, or user creation.
 
 ## Sidebar
 
-Dashboard · Students · Instructors · Courses · Support Tickets · Reports · Notifications · Profile · Logout
+Dashboard · Students · Instructors · Courses · Certificates · Support Tickets · Reports · Notifications · Profile · Logout
 
 ## Dashboard
 
-Stats: Total Students, Total Instructors, Total Courses, Active Courses, Open Support Tickets, Total Users.
+Stats: Total Students, Total Instructors, Total Courses, Active Courses, Open Support Tickets, Total Users (**students + instructors**).
 **No** revenue/expenses/profit/withdrawals/shareholders (Finance only).
-Recent Support Tickets + Academic Overview (monitor) + Recent Users. Notifications via header only.
+Recent Support Tickets + Recent Users. Notifications via header only.
+Professional copy only — no “monitor only” or academic-permission disclaimers.
 
 ## Key rules
 
-- Students: view, enable/disable — never delete
+- Students: view + download only — **never** enable/disable/delete (disable is Super Admin only)
 - Instructors & Courses: view only (no approve/reject/create)
-- Support: reply, close, reopen — core responsibility
+- Certificates: review student requests + upload issued certificate file
+- Support: reply, reopen; priority = high | medium | urgent; status = open | resolved
 - Academic actions (approve courses/certs/activations): only if Super Admin grants; default view-only
 - No finance, payments, research, system settings, roles, or user creation

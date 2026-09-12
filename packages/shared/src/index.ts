@@ -117,6 +117,7 @@ export const ROLE_PERMISSIONS: Record<AcademyRole, Permission[]> = {
     "certificates:read",
     "research:read",
     "notifications:read",
+    "payments:process",
   ],
   Finance: [
     "finance:read",
@@ -179,14 +180,34 @@ export const paginationQuerySchema = z.object({
 });
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 
+/** Instructor-facing lifecycle. `archived` is internal (consumed revisions). */
 export const courseStatusSchema = z.enum([
   "draft",
-  "pending_review",
+  "in_progress",
   "published",
-  "rejected",
   "archived",
 ]);
 export type CourseStatus = z.infer<typeof courseStatusSchema>;
+
+/** Review queue state — not shown as a primary instructor course status. */
+export const courseReviewStatusSchema = z.enum([
+  "none",
+  "pending_review",
+  "changes_requested",
+  "approved",
+]);
+export type CourseReviewStatus = z.infer<typeof courseReviewStatusSchema>;
+
+/** Legacy statuses kept for Zod filters / API compatibility during migration. */
+export const legacyCourseStatusSchema = z.enum([
+  "draft",
+  "in_progress",
+  "published",
+  "archived",
+  "pending_review",
+  "academic_approved",
+  "rejected",
+]);
 
 export const courseLevelSchema = z.enum([
   "beginner",

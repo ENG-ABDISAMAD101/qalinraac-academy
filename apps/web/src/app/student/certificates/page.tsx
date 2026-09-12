@@ -1,7 +1,7 @@
 "use client";
 
-import { Download, Eye } from "lucide-react";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { Download, Eye, Info } from "lucide-react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { StudentShell } from "@/components/student/StudentShell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -135,12 +135,33 @@ export default function CertificatesPage() {
     void load();
   }, [load]);
 
+  const selectedCourse = useMemo(
+    () => courses.find((c) => c.courseId === courseId) ?? null,
+    [courses, courseId],
+  );
+  const courseComplete =
+    !!selectedCourse &&
+    (selectedCourse.status === "completed" ||
+      (selectedCourse.progressPercent ?? 0) >= 100);
+  const canSubmit =
+    Boolean(recipientName.trim()) &&
+    Boolean(courseId) &&
+    confirmed &&
+    courseComplete &&
+    !submitting;
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setFormError("");
     setFormSuccess("");
     if (!recipientName.trim() || !courseId || !confirmed) {
       setFormError("Complete all fields and confirm the declaration.");
+      return;
+    }
+    if (!courseComplete) {
+      setFormError(
+        "You must complete this course at 100% before requesting a certificate.",
+      );
       return;
     }
     setSubmitting(true);
@@ -184,9 +205,22 @@ export default function CertificatesPage() {
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Request Certificate</DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
+                  Request Certificate
+                  <span
+                    className="inline-flex text-muted-foreground"
+                    title="Certificates are issued only after you finish every lesson in the selected course."
+                  >
+                    <Info className="h-4 w-4" aria-hidden />
+                    <span className="sr-only">
+                      Certificates are issued only after you finish every lesson
+                      in the selected course.
+                    </span>
+                  </span>
+                </DialogTitle>
                 <DialogDescription>
-                  Submit your legal name and select a completed course for review.
+                  Enter your legal name and choose a course you have completed at
+                  100%. Incomplete courses cannot be submitted for review.
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={onSubmit} className="space-y-4">
@@ -210,12 +244,19 @@ export default function CertificatesPage() {
                     className="flex h-11 w-full rounded-full border border-input bg-background px-4 text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="">Select a course</option>
-                    {courses.map((c) => (
-                      <option key={c.courseId} value={c.courseId}>
-                        {c.title}
-                        {c.status === "completed" ? " (Completed)" : ""}
-                      </option>
-                    ))}
+                    {courses.map((c) => {
+                      const done =
+                        c.status === "completed" ||
+                        (c.progressPercent ?? 0) >= 100;
+                      return (
+                        <option key={c.courseId} value={c.courseId}>
+                          {c.title}
+                          {done
+                            ? " (100%)"
+                            : ` (${c.progressPercent ?? 0}%)`}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <label className="flex items-start gap-3 text-sm leading-snug">
@@ -228,9 +269,18 @@ export default function CertificatesPage() {
                     I confirm that all information provided is correct.
                   </span>
                 </label>
-                <p className="text-xs text-muted-foreground">
-                  Certificate confirmation may take up to 24 hours.
-                </p>
+                {courseId && !courseComplete ? (
+                  <div className="flex items-start gap-2 rounded-xl bg-orange-100 px-3 py-2.5 text-sm text-orange-600 dark:bg-orange-100/90 dark:text-orange-600">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                    <p>
+                      Ma dalban kartid shahaado ilaa course-ka aad dhameyso.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Certificate confirmation may take up to 24 hours.
+                  </p>
+                )}
                 {formError ? (
                   <p className="text-sm text-destructive">{formError}</p>
                 ) : null}
@@ -240,7 +290,14 @@ export default function CertificatesPage() {
                   </p>
                 ) : null}
                 <DialogFooter>
-                  <Button type="submit" disabled={submitting}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={!canSubmit}>
                     {submitting ? "Submitting…" : "Submit request"}
                   </Button>
                 </DialogFooter>

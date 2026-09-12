@@ -60,6 +60,13 @@ export async function approveCourse(req: Request, res: Response) {
   );
 }
 
+export async function publishApprovedCourse(req: Request, res: Response) {
+  return sendSuccess(
+    res,
+    await service.publishApprovedCourse(req.params.id, id(req)),
+  );
+}
+
 export async function requestChanges(req: Request, res: Response) {
   return sendSuccess(
     res,
@@ -77,7 +84,20 @@ export async function rejectCourse(req: Request, res: Response) {
 export async function setCourseStatus(req: Request, res: Response) {
   return sendSuccess(
     res,
-    await service.setCourseStatus(req.params.id, id(req), req.body.status),
+    await service.setCourseStatus(
+      req.params.id,
+      id(req),
+      req.body.status,
+      req.body.reason,
+    ),
+  );
+}
+
+export async function disableCourse(req: Request, res: Response) {
+  const disabled = req.body?.disabled !== false;
+  return sendSuccess(
+    res,
+    await service.disablePublishedCourse(req.params.id, id(req), disabled),
   );
 }
 

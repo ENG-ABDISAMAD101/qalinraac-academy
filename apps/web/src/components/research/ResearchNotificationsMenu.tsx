@@ -26,9 +26,9 @@ export function ResearchNotificationsMenu() {
   const badgeCount = unreadCount > 0 ? unreadCount : totalNumber;
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <NotificationBellTrigger count={badgeCount} />
+        <NotificationBellTrigger count={badgeCount} className="size-9" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"

@@ -19,7 +19,7 @@ export function ProfileMenu() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const name = user?.fullName ?? "Student";
-  const email = user?.email ?? "student@qalinraac.local";
+  const email = user?.email ?? "—";
   const avatarSrc = mediaPublicUrl(user?.avatarUrl);
   const initials = name
     .split(" ")
@@ -29,11 +29,11 @@ export function ProfileMenu() {
     .toUpperCase();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="rounded-full outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex size-9 items-center justify-center rounded-full outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Open profile menu"
         >
           <Avatar className="h-9 w-9 border border-border shadow-sm">
@@ -42,7 +42,7 @@ export function ProfileMenu() {
           </Avatar>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end" sideOffset={8} className="w-64">
         <DropdownMenuLabel className="font-normal">
           <div className="flex items-center gap-3 py-1">
             <Avatar className="h-10 w-10">

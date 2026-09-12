@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, Search } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { StudentShell } from "@/components/student/StudentShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getApiErrorMessage,
   studentFeedbackRequest,
@@ -18,7 +18,8 @@ import { cn } from "@/lib/utils";
 function formatStatus(status: string) {
   const key = status.toLowerCase().replace(/\s+/g, "_");
   if (key === "reviewed") return "Reviewed";
-  if (key === "need_revision" || key === "failed") return "Need Revision";
+  if (key === "need_revision") return "Need Revision";
+  if (key === "failed") return "Failed";
   if (key === "passed") return "Passed";
   if (key === "pending" || key === "submitted") return "Pending";
   return status
@@ -30,9 +31,9 @@ function formatStatus(status: string) {
 function statusTone(status: string) {
   const label = formatStatus(status);
   if (label === "Passed" || label === "Reviewed") {
-    return "bg-primary-soft text-primary";
+    return "bg-muted text-foreground";
   }
-  if (label === "Need Revision") {
+  if (label === "Need Revision" || label === "Failed") {
     return "bg-destructive/10 text-destructive";
   }
   return "bg-canvas text-primary dark:bg-muted dark:text-foreground";
@@ -44,6 +45,7 @@ export default function FeedbackPage() {
   const [error, setError] = useState("");
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("all");
+  const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +79,7 @@ export default function FeedbackPage() {
       return (
         item.title.toLowerCase().includes(needle) ||
         item.courseTitle.toLowerCase().includes(needle) ||
+        (item.lessonTitle?.toLowerCase().includes(needle) ?? false) ||
         (item.description?.toLowerCase().includes(needle) ?? false)
       );
     });
@@ -92,7 +95,7 @@ export default function FeedbackPage() {
             Feedback & Discussions
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Assignment feedback, questions, and reply history
+            Assignment feedback, quizzes, and reply history
           </p>
         </div>
 
@@ -131,7 +134,7 @@ export default function FeedbackPage() {
           </p>
         ) : (
           <>
-            <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
               {[
                 { label: "Total Assignments", value: stats?.totalAssignments ?? 0 },
                 { label: "Total Quizzes", value: stats?.totalQuizzes ?? 0 },
@@ -139,7 +142,7 @@ export default function FeedbackPage() {
                 { label: "Need Revision", value: stats?.needRevision ?? 0 },
                 { label: "Pending", value: stats?.pending ?? 0 },
               ].map((card) => (
-                <div key={card.label} className="card-soft px-4 py-4">
+                <div key={card.label} className="rounded-2xl border border-border bg-card px-4 py-4">
                   <p className="text-xs font-medium text-muted-foreground">
                     {card.label}
                   </p>
@@ -150,68 +153,141 @@ export default function FeedbackPage() {
               ))}
             </div>
 
-            <Tabs value={tab} onValueChange={setTab}>
-              {(["all", "quiz", "assignment"] as const).map((key) => (
-                <TabsContent key={key} value={key} className="mt-0 space-y-3">
-                  {items.length === 0 ? (
-                    <div className="card-soft px-6 py-12 text-center">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        No feedback items to show.
-                      </p>
-                    </div>
-                  ) : (
-                    items.map((item) => {
-                      const href =
-                        item.kind === "quiz"
-                          ? `/student/feedback/quiz/${item.id}`
-                          : `/student/feedback/assignment/${item.id}`;
-                      return (
-                        <article
-                          key={`${item.kind}-${item.id}`}
-                          className="card-soft p-4 sm:p-5"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0 flex-1 space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary dark:bg-primary/20 dark:text-primary">
-                                  {item.kind === "quiz" ? "Quiz" : "Assignment"}
-                                </span>
-                                <span
-                                  className={cn(
-                                    "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
-                                    statusTone(item.status),
-                                  )}
-                                >
-                                  {formatStatus(item.status)}
-                                </span>
-                              </div>
-                              <h2 className="text-base font-bold text-ink dark:text-foreground sm:text-lg">
-                                {item.title}
-                              </h2>
-                              <p className="text-sm text-muted-foreground">
-                                {item.description?.trim() ||
-                                  `Course · ${item.courseTitle}`}
-                              </p>
-                            </div>
-                            <Button
-                              asChild
-                              variant="outline"
-                              size="icon"
-                              className="shrink-0"
-                              aria-label={`View ${item.title}`}
+            {items.length === 0 ? (
+              <div className="rounded-2xl border border-border bg-card px-6 py-12 text-center">
+                <p className="text-sm font-medium text-muted-foreground">
+                  No feedback items to show.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {items.map((item) => {
+                  const key = `${item.kind}-${item.id}`;
+                  const open = openId === key;
+
+                  return (
+                    <article
+                      key={key}
+                      className="overflow-hidden rounded-2xl border border-border bg-card"
+                    >
+                      <div className="flex items-start justify-between gap-3 p-4 sm:p-5">
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-foreground">
+                              {item.kind === "quiz" ? "Quiz" : "Assignment"}
+                            </span>
+                            <span
+                              className={cn(
+                                "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                                statusTone(item.status),
+                              )}
                             >
-                              <Link href={href}>
-                                <Eye className="h-4 w-4" />
-                              </Link>
-                            </Button>
+                              {formatStatus(item.status)}
+                            </span>
                           </div>
-                        </article>
-                      );
-                    })
-                  )}
-                </TabsContent>
-              ))}
-            </Tabs>
+                          <h2 className="text-base font-bold text-foreground sm:text-lg">
+                            {item.title}
+                          </h2>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="shrink-0 rounded-xl"
+                          aria-label={open ? "Collapse" : "Expand"}
+                          aria-expanded={open}
+                          onClick={() => setOpenId(open ? null : key)}
+                        >
+                          {open ? (
+                            <X className="h-4 w-4" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+
+                      <div
+                        className={cn(
+                          "grid transition-[grid-template-rows] duration-200",
+                          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                        )}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="border-t border-border px-4 pb-5 pt-4 sm:px-5">
+                            {item.kind === "quiz" ? (
+                              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                <div>
+                                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    Course name
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold text-foreground">
+                                    {item.courseTitle}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    Lesson name
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold text-foreground">
+                                    {item.lessonTitle ?? "—"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    Questions
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold text-foreground">
+                                    {item.questionCount ?? 0}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    Passing score
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold text-foreground">
+                                    {item.passingScore != null
+                                      ? `${item.passingScore}%`
+                                      : "—"}
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    Course name
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold text-foreground">
+                                    {item.courseTitle}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    Lesson name
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold text-foreground">
+                                    {item.lessonTitle ?? "—"}
+                                  </p>
+                                </div>
+                                <div className="sm:col-span-2">
+                                  <Button asChild size="sm" className="rounded-xl">
+                                    <Link
+                                      href={`/student/feedback/assignment/${item.id}`}
+                                    >
+                                      Open details
+                                    </Link>
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </>
         )}
       </div>

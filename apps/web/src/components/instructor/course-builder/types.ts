@@ -7,14 +7,15 @@ export const BUILDER_STEPS = [
   { step: 4, label: "Requirements", hint: "Prerequisites & audience" },
   { step: 5, label: "Curriculum", hint: "Create sections" },
   { step: 6, label: "Lessons", hint: "Add lessons to sections" },
-  { step: 7, label: "Assessment", hint: "Quizzes & assignments" },
-  { step: 8, label: "Pricing", hint: "Price & access duration" },
-  { step: 9, label: "Course Preview", hint: "Review & submit" },
+  { step: 7, label: "Assessment", hint: "Managed on Quizzes / Assignments" },
+  { step: 8, label: "Intro Video", hint: "YouTube trailer URL" },
+  { step: 9, label: "Pricing", hint: "Price & access duration" },
+  { step: 10, label: "Course Preview", hint: "Review & submit" },
 ] as const;
 
 export const TOTAL_STEPS = BUILDER_STEPS.length;
 
-export type BuilderStepNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type BuilderStepNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export type AccessDuration = "6_months" | "1_year" | "lifetime";
 
 export function clampStep(value: unknown): BuilderStepNumber {
@@ -37,6 +38,7 @@ export type CourseDraft = {
   accessDuration: AccessDuration;
   currency: string;
   thumbnailUrl: string;
+  promoVideoUrl: string;
 };
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -78,15 +80,20 @@ export function levelLabel(value?: string) {
   );
 }
 
-export function courseStatusLabel(status: string) {
-  const map: Record<string, string> = {
-    draft: "Draft",
-    pending_review: "Pending Review",
-    published: "Published",
-    rejected: "Rejected",
-    archived: "Archived",
-  };
-  return map[status] ?? status;
+/** Instructor-facing label: Draft | In Progress | Published */
+export function courseStatusLabel(status: string, displayStatus?: string) {
+  if (
+    displayStatus === "Published" ||
+    displayStatus === "Draft" ||
+    displayStatus === "In Progress"
+  ) {
+    return displayStatus;
+  }
+  if (status === "published") return "Published";
+  if (status === "in_progress" || status === "pending_review") {
+    return "In Progress";
+  }
+  return "Draft";
 }
 
 export function sectionLabel(index: number) {
@@ -117,5 +124,6 @@ export const MISSING_STEP: Record<string, BuilderStepNumber> = {
   curriculum: 5,
   lessons: 6,
   assessment: 7,
-  pricing: 8,
+  introVideo: 8,
+  pricing: 9,
 };

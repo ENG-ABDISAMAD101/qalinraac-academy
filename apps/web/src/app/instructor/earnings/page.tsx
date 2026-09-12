@@ -31,7 +31,7 @@ function downloadCsv(data: EarningsData) {
     "Student",
     "Email",
     "Sale",
-    "Your share",
+    "Instructor share",
     "Currency",
     "Date",
   ];
@@ -87,20 +87,20 @@ export default function InstructorEarningsPage() {
 
   const cards = [
     {
-      label: "Total Earnings",
+      label: "Total earnings",
       value: formatMoney(data?.totalEarnings ?? 0),
     },
     {
-      label: "Available",
+      label: "Balance",
       value: formatMoney(data?.availableBalance ?? 0),
     },
     {
-      label: "Pending Withdrawal",
+      label: "Pending withdrawal",
       value: formatMoney(data?.pendingWithdrawal ?? 0),
     },
     {
-      label: "Share",
-      value: `${data?.sharePercent ?? 0}%`,
+      label: "Instructor share",
+      value: `${sharePercent}%`,
     },
   ];
 
@@ -113,7 +113,7 @@ export default function InstructorEarningsPage() {
               Earnings
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Read-only revenue history for your courses
+              Track course sales and your available balance.
             </p>
           </div>
           <Button
@@ -124,7 +124,7 @@ export default function InstructorEarningsPage() {
             onClick={() => data && downloadCsv(data)}
           >
             <Download className="h-4 w-4" />
-            Download CSV
+            Export CSV
           </Button>
         </div>
 
@@ -133,7 +133,7 @@ export default function InstructorEarningsPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by student or course"
+            placeholder="Search student or course"
             className="pl-11"
           />
         </label>
@@ -161,7 +161,7 @@ export default function InstructorEarningsPage() {
 
             {(data?.items.length ?? 0) === 0 ? (
               <div className="card-soft px-5 py-12 text-center text-sm text-muted-foreground">
-                No sales yet.
+                No earnings yet.
               </div>
             ) : (
               <div className="overflow-hidden card-soft">
@@ -190,7 +190,7 @@ export default function InstructorEarningsPage() {
                         <td className="px-5 py-4">
                           {formatMoney(e.amountCents, e.currency)}
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4 font-semibold">
                           {formatMoney(e.instructorShareCents, e.currency)}
                         </td>
                         <td className="px-5 py-4 text-muted-foreground">

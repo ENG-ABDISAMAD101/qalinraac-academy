@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
+import { NavigationProgress } from "@/components/navigation-progress";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
@@ -17,8 +18,12 @@ const display = Fraunces({
 });
 
 export const metadata = {
-  title: "Qalinraac Academy",
-  description: "Enterprise learning management for Qalinraac Academy",
+  title: {
+    default: "Qalinraac Academy",
+    template: "%s · Qalinraac Academy",
+  },
+  description:
+    "Independent non-profit knowledge institution for modern education, research, writing, translation, skills development, and consulting in Somalia and East Africa.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -26,6 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${sans.variable} ${display.variable}`} suppressHydrationWarning>
       <body className={sans.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <NavigationProgress />
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
       </body>

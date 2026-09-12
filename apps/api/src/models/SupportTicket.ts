@@ -1,10 +1,7 @@
 import { Schema, model, type Document, type Types } from "mongoose";
 
-export type SupportTicketStatus =
-  | "open"
-  | "pending"
-  | "replied"
-  | "closed";
+export type SupportTicketStatus = "open" | "resolved" | "closed";
+export type SupportTicketPriority = "high" | "medium" | "urgent";
 
 export interface ISupportTicket extends Document {
   _id: Types.ObjectId;
@@ -12,6 +9,7 @@ export interface ISupportTicket extends Document {
   subject: string;
   body: string;
   status: SupportTicketStatus;
+  priority: SupportTicketPriority;
   attachmentIds: Types.ObjectId[];
   replies: {
     authorId: Types.ObjectId;
@@ -29,8 +27,15 @@ const supportTicketSchema = new Schema<ISupportTicket>(
     body: { type: String, required: true },
     status: {
       type: String,
-      enum: ["open", "pending", "replied", "closed"],
+      enum: ["open", "resolved", "closed"],
       default: "open",
+      index: true,
+    },
+    priority: {
+      type: String,
+      enum: ["high", "medium", "urgent"],
+      default: "medium",
+      index: true,
     },
     attachmentIds: [{ type: Schema.Types.ObjectId, ref: "FileAsset" }],
     replies: [

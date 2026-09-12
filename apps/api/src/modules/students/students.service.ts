@@ -331,6 +331,25 @@ export async function getStudentDashboard(userId: string) {
       }
     : null;
 
+  const instructorIdSet = new Set<string>();
+  for (const e of enrollments) {
+    if (e.status !== "active") continue;
+    const first = courseFromEnrollment(e.courseId)?.instructorIds?.[0];
+    if (first) instructorIdSet.add(String(first));
+  }
+
+  const instructors = instructorIdSet.size
+    ? await User.find({
+        _id: { $in: [...instructorIdSet].map((id) => new Types.ObjectId(id)) },
+      })
+        .select("fullName avatarUrl")
+        .lean()
+    : [];
+
+  const instructorById = new Map(
+    instructors.map((u) => [String(u._id), mapInstructor(u)] as const),
+  );
+
   const learningCourses = enrollments
     .filter((e) => e.status === "active")
     .slice(0, 4)
@@ -341,6 +360,9 @@ export async function getStudentDashboard(userId: string) {
       const watched = progressRows.filter(
         (p) => String(p.courseId) === String(c._id),
       ).length;
+      const firstInstructorId = c.instructorIds?.[0]
+        ? String(c.instructorIds[0])
+        : undefined;
       return [
         {
           id: String(e._id),
@@ -350,6 +372,9 @@ export async function getStudentDashboard(userId: string) {
           progressPercent: e.progressPercent ?? 0,
           watched,
           total,
+          instructor: firstInstructorId
+            ? instructorById.get(firstInstructorId) ?? null
+            : null,
         },
       ];
     });
@@ -395,6 +420,10 @@ export async function getMyCourses(userId: string) {
     .sort({ updatedAt: -1 })
     .lean();
 
+  const courseIds = enrollments
+    .map((e) => courseFromEnrollment(e.courseId)?._id)
+    .filter(Boolean) as Types.ObjectId[];
+
   const instructorIdSet = new Set<string>();
   for (const e of enrollments) {
     const course = courseFromEnrollment(e.courseId);
@@ -402,32 +431,59 @@ export async function getMyCourses(userId: string) {
     if (first) instructorIdSet.add(String(first));
   }
 
-  const instructors = instructorIdSet.size
-    ? await User.find({
-        _id: { $in: [...instructorIdSet].map((id) => new Types.ObjectId(id)) },
-      })
-        .select("fullName avatarUrl")
-        .lean()
-    : [];
+  const [instructors, lessons, progressRows] = await Promise.all([
+    instructorIdSet.size
+      ? User.find({
+          _id: {
+            $in: [...instructorIdSet].map((id) => new Types.ObjectId(id)),
+          },
+        })
+          .select("fullName avatarUrl")
+          .lean()
+      : Promise.resolve([]),
+    courseIds.length
+      ? Lesson.find({ courseId: { $in: courseIds } })
+          .select("courseId")
+          .lean()
+      : Promise.resolve([]),
+    Progress.find({ userId: userObjectId, completed: true })
+      .select("courseId")
+      .lean(),
+  ]);
 
   const instructorById = new Map(
     instructors.map((u) => [String(u._id), mapInstructor(u)] as const),
   );
 
+  const lessonCountByCourse = new Map<string, number>();
+  for (const lesson of lessons) {
+    const key = String(lesson.courseId);
+    lessonCountByCourse.set(key, (lessonCountByCourse.get(key) ?? 0) + 1);
+  }
+
+  const watchedByCourse = new Map<string, number>();
+  for (const row of progressRows) {
+    const key = String(row.courseId);
+    watchedByCourse.set(key, (watchedByCourse.get(key) ?? 0) + 1);
+  }
+
   return enrollments.flatMap((e) => {
     const course = courseFromEnrollment(e.courseId);
     if (!course) return [];
+    const courseId = String(course._id);
     const firstInstructorId = course.instructorIds?.[0]
       ? String(course.instructorIds[0])
       : undefined;
     return [
       {
         id: String(e._id),
-        courseId: String(course._id),
+        courseId,
         status: e.status,
         progressPercent: e.progressPercent ?? 0,
+        watched: watchedByCourse.get(courseId) ?? 0,
+        total: lessonCountByCourse.get(courseId) ?? 0,
         course: {
-          id: String(course._id),
+          id: courseId,
           title: course.title,
           thumbnailUrl: course.thumbnailUrl,
           description: course.description,
@@ -565,17 +621,21 @@ export async function getFeedback(userId: string) {
     };
   }
 
-  const [quizzes, assignments, attempts, submissions, courseDocs] =
+  const [quizzes, assignments, attempts, submissions, courseDocs, lessonDocs] =
     await Promise.all([
       Quiz.find({ courseId: { $in: courseIds } }).lean(),
       Assignment.find({ courseId: { $in: courseIds } }).lean(),
       QuizAttempt.find({ userId: userObjectId }).lean(),
       Submission.find({ userId: userObjectId }).lean(),
       Course.find({ _id: { $in: courseIds } }).select("title").lean(),
+      Lesson.find({ courseId: { $in: courseIds } }).select("title").lean(),
     ]);
 
   const courseTitleById = new Map(
     courseDocs.map((c) => [String(c._id), c.title]),
+  );
+  const lessonTitleById = new Map(
+    lessonDocs.map((l) => [String(l._id), l.title]),
   );
 
   const latestAttempts = new Map<string, (typeof attempts)[number]>();
@@ -598,6 +658,9 @@ export async function getFeedback(userId: string) {
     description?: string;
     courseId: string;
     courseTitle: string;
+    lessonTitle?: string;
+    questionCount?: number;
+    passingScore?: number;
     status: FeedbackStatus;
     createdAt: Date;
   }[] = [];
@@ -619,6 +682,11 @@ export async function getFeedback(userId: string) {
       description: q.description,
       courseId: String(q.courseId),
       courseTitle: courseTitleById.get(String(q.courseId)) ?? "Course",
+      lessonTitle: q.lessonId
+        ? lessonTitleById.get(String(q.lessonId))
+        : undefined,
+      questionCount: q.questions?.length ?? 0,
+      passingScore: q.passingScore,
       status,
       createdAt: q.createdAt,
     });
@@ -646,6 +714,9 @@ export async function getFeedback(userId: string) {
       description: a.description,
       courseId: String(a.courseId),
       courseTitle: courseTitleById.get(String(a.courseId)) ?? "Course",
+      lessonTitle: a.lessonId
+        ? lessonTitleById.get(String(a.lessonId))
+        : undefined,
       status,
       createdAt: a.createdAt,
     });
@@ -968,16 +1039,25 @@ function mapSupportTicket(ticket: {
   subject: string;
   body: string;
   status: string;
+  priority?: string;
   attachmentIds: Types.ObjectId[];
   replies: { authorId: Types.ObjectId; body: string; createdAt: Date }[];
   createdAt: Date;
   updatedAt: Date;
 }) {
+  const status =
+    ticket.status === "resolved" || ticket.status === "closed"
+      ? ticket.status
+      : "open";
   return {
     id: String(ticket._id),
     subject: ticket.subject,
     body: ticket.body,
-    status: ticket.status,
+    status,
+    priority:
+      ticket.priority === "high" || ticket.priority === "urgent"
+        ? ticket.priority
+        : "medium",
     attachmentIds: (ticket.attachmentIds ?? []).map(String),
     replies: (ticket.replies ?? []).map((r) => ({
       authorId: String(r.authorId),
@@ -999,6 +1079,7 @@ export async function listMySupport(userId: string) {
 export const createSupportSchema = z.object({
   subject: z.string().min(1).max(200),
   body: z.string().min(1).max(10000),
+  priority: z.enum(["high", "medium", "urgent"]).optional(),
   attachmentIds: z.array(z.string().min(1)).optional(),
 });
 
@@ -1012,6 +1093,7 @@ export async function createSupportTicket(
     subject: parsed.subject.trim(),
     body: parsed.body.trim(),
     status: "open",
+    priority: parsed.priority ?? "medium",
     attachmentIds: parsed.attachmentIds ?? [],
   });
   return mapSupportTicket(ticket.toObject());
@@ -1022,6 +1104,51 @@ export async function getMySupportTicket(userId: string, ticketId: string) {
   const ticket = await SupportTicket.findOne({ _id: ticketId, userId }).lean();
   if (!ticket) throw new AppError(404, "NOT_FOUND", "Support ticket not found");
   return mapSupportTicket(ticket);
+}
+
+export const updateSupportStatusSchema = z.object({
+  status: z.enum(["open", "resolved", "closed"]),
+});
+
+export async function updateMySupportTicketStatus(
+  userId: string,
+  ticketId: string,
+  input: z.infer<typeof updateSupportStatusSchema>,
+) {
+  requireObjectId(ticketId, "ticketId");
+  const parsed = updateSupportStatusSchema.parse(input);
+
+  const ticket = await SupportTicket.findOneAndUpdate(
+    { _id: ticketId, userId },
+    { $set: { status: parsed.status } },
+    { new: true },
+  ).lean();
+  if (!ticket) throw new AppError(404, "NOT_FOUND", "Support ticket not found");
+  return mapSupportTicket(ticket);
+}
+
+export const supportReplySchema = z.object({
+  body: z.string().min(1).max(5000),
+});
+
+export async function replyToMySupportTicket(
+  userId: string,
+  ticketId: string,
+  input: z.infer<typeof supportReplySchema>,
+) {
+  requireObjectId(ticketId, "ticketId");
+  const parsed = supportReplySchema.parse(input);
+  const ticket = await SupportTicket.findOne({ _id: ticketId, userId });
+  if (!ticket) throw new AppError(404, "NOT_FOUND", "Support ticket not found");
+
+  ticket.replies.push({
+    authorId: new Types.ObjectId(userId),
+    body: parsed.body.trim(),
+    createdAt: new Date(),
+  });
+  if (ticket.status === "resolved") ticket.status = "open";
+  await ticket.save();
+  return mapSupportTicket(ticket.toObject());
 }
 
 export const updateProfileSchema = z.object({

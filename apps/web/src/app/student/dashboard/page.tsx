@@ -2,24 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import {
   Award,
   BookOpen,
   CheckCircle2,
-  ClipboardList,
   Flame,
+  Target,
 } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { StudentShell } from "@/components/student/StudentShell";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EnrolledCourseCard } from "@/components/student/StudentCourseCard";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -28,72 +20,62 @@ import {
   type StudentDashboardData,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import {
-  cn,
-  displayStudentName,
-  greetingForHour,
-  initialsFromName,
-} from "@/lib/utils";
+import { displayStudentName, greetingForHour } from "@/lib/utils";
 
-function ProgressAvatar({
-  value,
-  avatarUrl,
-  name,
-  streakDays,
-}: {
+type StatItem = {
+  label: string;
   value: number;
-  avatarUrl?: string;
-  name: string;
-  streakDays: number;
-}) {
-  const r = 54;
-  const c = 2 * Math.PI * r;
-  const offset = c - (Math.min(Math.max(value, 0), 100) / 100) * c;
+  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+};
 
+function SummaryStatsGrid({ items }: { items: StatItem[] }) {
   return (
-    <div className="relative mx-auto h-40 w-40">
-      <svg className="h-full w-full -rotate-90" viewBox="0 0 128 128">
-        <circle
-          cx="64"
-          cy="64"
-          r={r}
-          fill="none"
-          stroke="currentColor"
-          className="text-muted"
-          strokeWidth="10"
-        />
-        <circle
-          cx="64"
-          cy="64"
-          r={r}
-          fill="none"
-          stroke="#6B7280"
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={offset}
-        />
-      </svg>
-      <div className="absolute inset-3 overflow-hidden rounded-full bg-primary-soft">
-        <Avatar className="h-full w-full">
-          <AvatarImage
-            src={mediaPublicUrl(avatarUrl)}
-            alt={name}
-            className="object-cover"
-          />
-          <AvatarFallback className="text-lg font-bold text-primary">
-            {initialsFromName(name)}
-          </AvatarFallback>
-        </Avatar>
-      </div>
-      <span
-        className="absolute -bottom-1 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 text-primary"
-        title={`${streakDays} day streak`}
-        aria-label={`${streakDays} day streak`}
-      >
-        <Flame className="h-5 w-5 fill-primary text-primary" />
-        <span className="text-xs font-bold">{streakDays}</span>
-      </span>
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <div
+            key={item.label}
+            className="rounded-2xl border border-border bg-canvas px-3 py-3 sm:px-4 dark:bg-[#1A1A1A]"
+          >
+            <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-card text-primary">
+              <Icon className="h-4 w-4" aria-hidden />
+            </span>
+            <p className="text-xl font-bold tabular-nums text-primary dark:text-foreground">
+              {item.value}
+            </p>
+            <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+              {item.label}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StreakStatsGrid({ items }: { items: StatItem[] }) {
+  return (
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <div
+            key={item.label}
+            className="flex items-center gap-2.5 rounded-2xl border border-border/80 bg-muted/50 px-3 py-3 dark:bg-[#1A1A1A]"
+          >
+            <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+            <div className="min-w-0">
+              <p className="text-base font-bold tabular-nums leading-none text-primary dark:text-foreground">
+                {item.value}
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {item.label}
+              </p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -107,6 +89,7 @@ export default function StudentDashboardPage() {
   const displayName = displayStudentName(user?.fullName);
 
   useEffect(() => {
+    if (!user) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -126,327 +109,175 @@ export default function StudentDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user?._id]);
 
-  const continueHref = data?.continueCourse
-    ? `/student/learn/${data.continueCourse.id}`
-    : "/student/courses";
-
-  const heroTitle =
-    data?.continueCourse?.title ??
-    "Sharpen Your Skills with Professional Online Courses";
-
+  const featured = data?.continueCourse ?? null;
   const stats = data?.stats;
-  const statCards = [
+  const courses = data?.learningCourses ?? [];
+  const showContinueLearning = Boolean(featured?.id);
+
+  const summaryStats: StatItem[] = [
     {
-      label: "Active Courses",
+      label: "Active courses",
       value: stats?.activeCourses ?? 0,
-      tone: "navy" as const,
       icon: BookOpen,
     },
     {
       label: "Completed",
       value: stats?.completedCourses ?? 0,
-      tone: "lime" as const,
       icon: CheckCircle2,
     },
     {
       label: "Certificates",
       value: stats?.certificates ?? 0,
-      tone: "navy" as const,
       icon: Award,
     },
+  ];
+
+  const streakStats: StatItem[] = [
     {
-      label: "Quiz Avg",
-      value: stats?.quizAverage == null ? "—" : `${stats.quizAverage}%`,
-      tone: "lime" as const,
-      icon: ClipboardList,
+      label: "Day streak",
+      value: stats?.streakDays ?? 0,
+      icon: Flame,
+    },
+    {
+      label: "Done",
+      value: stats?.completedLessons ?? 0,
+      icon: CheckCircle2,
+    },
+    {
+      label: "Left",
+      value: stats?.remainingLessons ?? 0,
+      icon: Target,
     },
   ];
 
   return (
     <StudentShell>
-      <div className="grid min-h-screen grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-          <section className="rounded-[1.5rem] border border-border/70 bg-card px-8 py-10 shadow-sm dark:bg-card">
-            <div className="max-w-xl">
-              <p className="text-sm font-medium text-muted-foreground">
-                {greetingForHour()}, {displayName}
-              </p>
-              <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-primary dark:text-foreground md:text-4xl">
-                {heroTitle}
-              </h1>
-              <Button asChild className="mt-6">
-                <Link href={continueHref}>Continue Learning</Link>
-              </Button>
-            </div>
-          </section>
+      <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
+        <header>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-primary dark:text-foreground sm:text-3xl">
+            {greetingForHour()}
+            {displayName ? (
+              <span className="font-semibold text-muted-foreground">
+                , {displayName}
+              </span>
+            ) : null}
+          </h1>
+        </header>
 
-          {loading ? (
-            <div className="flex min-h-[12rem] items-center justify-center">
-              <Spinner className="sm" label="Loading dashboard" />
-            </div>
-          ) : error ? (
-            <p className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-              {error}
-            </p>
-          ) : (
-            <>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {statCards.map((card) => {
-                  const Icon = card.icon;
-                  return (
-                    <div
-                      key={card.label}
-                      className="card-soft flex items-center justify-between px-5 py-4"
-                    >
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground">
-                          {card.label}
-                        </p>
-                        <p className="mt-1 text-2xl font-bold text-primary dark:text-foreground">
-                          {card.value}
-                        </p>
+        {loading ? (
+          <div className="flex min-h-[16rem] items-center justify-center">
+            <Spinner className="sm" label="Loading dashboard" />
+          </div>
+        ) : error ? (
+          <p className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </p>
+        ) : (
+          <>
+            <section className="overflow-hidden rounded-[1.75rem] border border-border bg-card">
+              {showContinueLearning && featured ? (
+                <div className="grid lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.9fr)] lg:items-stretch">
+                  <div className="flex min-h-0 flex-col justify-between gap-6 border-border p-6 sm:p-8 lg:border-r">
+                    <div className="space-y-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                        Continue learning
+                      </p>
+                      <div className="space-y-2">
+                        <h2 className="font-display text-2xl font-bold leading-tight text-primary dark:text-foreground sm:text-[1.75rem]">
+                          {featured.title}
+                        </h2>
+                        {featured.description?.trim() ? (
+                          <p className="max-w-xl text-sm leading-relaxed text-secondary-foreground">
+                            {featured.description.trim()}
+                          </p>
+                        ) : null}
                       </div>
-                      <span
-                        className={
-                          card.tone === "lime"
-                            ? "flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-soft text-primary"
-                            : "flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-primary"
-                        }
-                      >
-                        <Icon className="h-5 w-5" aria-hidden />
-                      </span>
+                      <Button asChild className="rounded-2xl px-6">
+                        <Link href={`/student/learn/${featured.id}`}>
+                          Continue learning
+                        </Link>
+                      </Button>
                     </div>
-                  );
-                })}
+
+                    <div className="space-y-4">
+                      <SummaryStatsGrid items={summaryStats} />
+                      <p className="text-sm text-muted-foreground">
+                        Continue your learning to achieve your target!
+                      </p>
+                      <StreakStatsGrid items={streakStats} />
+                    </div>
+                  </div>
+
+                  <div className="relative min-h-[220px] border-t border-border bg-muted lg:min-h-[360px] lg:border-t-0">
+                    {featured.thumbnailUrl ? (
+                      <Image
+                        src={mediaPublicUrl(featured.thumbnailUrl)!}
+                        alt={featured.title}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                        priority
+                      />
+                    ) : (
+                      <div className="flex h-full min-h-[220px] items-center justify-center px-6 text-center text-sm font-semibold text-muted-foreground lg:min-h-[360px]">
+                        {featured.title}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 p-6 sm:p-8">
+                  <SummaryStatsGrid items={summaryStats} />
+                  <p className="text-sm text-muted-foreground">
+                    Continue your learning to achieve your target!
+                  </p>
+                  <StreakStatsGrid items={streakStats} />
+                </div>
+              )}
+            </section>
+
+            <section className="space-y-4">
+              <div className="flex items-end justify-between gap-3">
+                <h2 className="font-display text-xl font-bold text-primary dark:text-foreground">
+                  Available courses
+                </h2>
+                <Link
+                  href="/student/courses"
+                  className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  My courses
+                </Link>
               </div>
 
-              {(data?.learningCourses?.length ?? 0) > 0 ? (
-                <div className="grid gap-3 md:grid-cols-3">
-                  {data!.learningCourses.slice(0, 3).map((p) => (
-                    <Link
-                      key={p.id}
-                      href={`/student/learn/${p.courseId}`}
-                      className="card-soft flex items-center gap-4 px-4 py-3.5 transition hover:-translate-y-0.5"
-                    >
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-xs font-bold text-primary-foreground">
-                        {p.progressPercent}%
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold text-primary dark:text-foreground">
-                          {p.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {p.watched}/{p.total || "—"} watched
-                        </p>
-                      </div>
-                    </Link>
+              {courses.length === 0 ? (
+                <div className="rounded-[1.5rem] border border-border/70 bg-card px-6 py-12 text-center shadow-sm">
+                  <p className="text-sm text-muted-foreground">
+                    No active courses yet. Enroll to start learning.
+                  </p>
+                  <Button asChild className="mt-4 rounded-2xl" size="sm">
+                    <Link href="/courses">Browse courses</Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {courses.map((course) => (
+                    <EnrolledCourseCard
+                      key={course.id}
+                      courseId={course.courseId}
+                      title={course.title}
+                      thumbnailUrl={course.thumbnailUrl}
+                      progressPercent={course.progressPercent}
+                      watched={course.watched}
+                      total={course.total}
+                    />
                   ))}
                 </div>
-              ) : null}
-
-              <section>
-                <h2 className="mb-4 text-lg font-bold text-primary dark:text-foreground">
-                  Continue Learning
-                </h2>
-                {(data?.learningCourses?.length ?? 0) === 0 ? (
-                  <div className="card-soft px-5 py-8 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      No active courses yet. Browse and enroll to start learning.
-                    </p>
-                    <Button asChild className="mt-4" size="sm">
-                      <Link href="/student/courses">My Courses</Link>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid gap-5 md:grid-cols-2">
-                    {data!.learningCourses.map((course) => (
-                      <article
-                        key={course.id}
-                        className="card-soft overflow-hidden"
-                      >
-                        <div className="relative aspect-[16/10] bg-muted">
-                          {course.thumbnailUrl ? (
-                            <Image
-                              src={course.thumbnailUrl}
-                              alt=""
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center bg-primary/5 text-sm font-semibold text-primary">
-                              {course.title}
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-3 p-5">
-                          <h3 className="text-base font-bold leading-snug text-foreground">
-                            {course.title}
-                          </h3>
-                          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                            <div
-                              className="h-full rounded-full bg-primary"
-                              style={{
-                                width: `${course.progressPercent}%`,
-                              }}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs text-muted-foreground">
-                              {course.progressPercent}% complete
-                            </p>
-                            <Button asChild size="sm">
-                              <Link href={`/student/learn/${course.courseId}`}>
-                                Continue
-                              </Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <section className="card-soft p-5">
-                <h2 className="mb-4 text-base font-bold text-primary dark:text-foreground">
-                  Upcoming Quizzes
-                </h2>
-                {(data?.upcomingQuizzes?.length ?? 0) === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No upcoming quizzes. Start a course to see your next quizzes
-                    here.
-                  </p>
-                ) : (
-                  <ul className="space-y-3">
-                    {data!.upcomingQuizzes.map((q) => (
-                      <li key={q.id}>
-                        <Link
-                          href={`/student/learn/${q.courseId}`}
-                          className={cn(
-                            "block rounded-2xl border border-border px-4 py-3 transition hover:bg-accent/50",
-                          )}
-                        >
-                          <p className="text-sm font-semibold text-foreground">
-                            {q.title}
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {q.courseTitle}
-                            {q.lessonTitle ? ` · ${q.lessonTitle}` : ""}
-                          </p>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-
-              {(data?.notifications?.length ?? 0) > 0 ? (
-                <section className="card-soft p-5">
-                  <h2 className="mb-4 text-base font-bold text-primary dark:text-foreground">
-                    Recent Notifications
-                  </h2>
-                  <ul className="space-y-3">
-                    {data!.notifications.map((n) => (
-                      <li
-                        key={n.id}
-                        className={cn(
-                          "rounded-2xl border border-border px-4 py-3",
-                          !n.read && "bg-primary-soft/40",
-                        )}
-                      >
-                        <p className="text-sm font-semibold text-foreground">
-                          {n.title}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {n.body}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
-            </>
-          )}
-        </div>
-
-        <aside className="hidden space-y-6 border-l border-border/60 bg-background/60 px-5 py-6 xl:block">
-          <section className="card-soft p-5">
-            <h2 className="mb-6 font-bold text-primary dark:text-foreground">
-              Statistic
-            </h2>
-            {loading ? (
-              <div className="flex justify-center py-10">
-                <Spinner className="sm" label="Loading stats" />
-              </div>
-            ) : (
-              <>
-                <ProgressAvatar
-                  value={stats?.overallProgress ?? 0}
-                  avatarUrl={user?.avatarUrl}
-                  name={user?.fullName ?? "Student"}
-                  streakDays={stats?.streakDays ?? 0}
-                />
-                <p className="mt-8 text-center text-xs text-muted-foreground">
-                  Continue your learning to achieve your target!
-                </p>
-
-                <div className="mt-6 grid grid-cols-3 gap-2 text-center">
-                  <div className="rounded-2xl bg-muted px-2 py-3">
-                    <p className="text-lg font-bold text-primary dark:text-foreground">
-                      {stats?.streakDays ?? 0}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      Day streak
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-muted px-2 py-3">
-                    <p className="text-lg font-bold text-primary dark:text-foreground">
-                      {stats?.completedLessons ?? 0}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">Done</p>
-                  </div>
-                  <div className="rounded-2xl bg-muted px-2 py-3">
-                    <p className="text-lg font-bold text-primary dark:text-foreground">
-                      {stats?.remainingLessons ?? 0}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">Left</p>
-                  </div>
-                </div>
-
-                <div className="mt-6 h-40">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data?.activity ?? []}>
-                      <XAxis
-                        dataKey="range"
-                        tick={{ fontSize: 10, fill: "#6B7280" }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <YAxis hide />
-                      <Tooltip
-                        cursor={{ fill: "rgba(28,30,33,0.04)" }}
-                        contentStyle={{
-                          borderRadius: 12,
-                          border: "none",
-                          fontSize: 12,
-                        }}
-                      />
-                      <Bar
-                        dataKey="hours"
-                        fill="#111827"
-                        radius={[8, 8, 8, 8]}
-                        barSize={28}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </>
-            )}
-          </section>
-        </aside>
+              )}
+            </section>
+          </>
+        )}
       </div>
     </StudentShell>
   );

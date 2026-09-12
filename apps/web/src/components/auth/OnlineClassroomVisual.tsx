@@ -1,43 +1,25 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { GraduationCap, Rocket, Sprout } from "lucide-react";
-
-const pillars = [
-  {
-    title: "Learn",
-    detail: "Expert instructors & structured lessons",
-    icon: GraduationCap,
-  },
-  {
-    title: "Grow",
-    detail: "Practical skills & continuous growth",
-    icon: Sprout,
-  },
-  {
-    title: "Build",
-    detail: "Real projects & real-world experience",
-    icon: Rocket,
-  },
-] as const;
 
 export function OnlineClassroomVisual() {
   return (
-    <div className="relative flex h-full min-h-[22rem] w-full items-center justify-center overflow-hidden bg-card lg:min-h-0">
+    <div className="relative flex h-full min-h-[26rem] w-full items-center justify-center overflow-hidden bg-canvas text-foreground lg:min-h-0">
       <motion.div
-        className="pointer-events-none absolute -left-20 top-16 h-72 w-72 rounded-full bg-primary/12 blur-3xl"
-        animate={{ x: [0, 20, 0], opacity: [0.4, 0.65, 0.4] }}
+        className="pointer-events-none absolute left-1/2 top-[42%] h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"
+        animate={{ opacity: [0.35, 0.55, 0.35], scale: [0.95, 1.05, 0.95] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="pointer-events-none absolute bottom-8 right-8 h-40 w-40 rounded-full bg-primary/8 blur-3xl"
+        animate={{ opacity: [0.2, 0.4, 0.2] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.div
-        className="pointer-events-none absolute -right-16 bottom-10 h-80 w-80 rounded-full bg-primary/8 blur-3xl"
-        animate={{ x: [0, -16, 0], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
 
-      <div className="relative z-10 flex w-full max-w-lg flex-col justify-center px-6 py-12 sm:px-10 lg:px-12">
+      <div className="relative z-10 flex w-full gap-10 max-w-2xl flex-col items-center px-6 py-12 sm:px-10 lg:px-12">
         <motion.p
-          className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-[15px]"
+          className="max-w-md mx-auto  text-sm leading-relaxed text-muted-foreground sm:text-[15px]"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -48,41 +30,66 @@ export function OnlineClassroomVisual() {
           the future you imagine.
         </motion.p>
 
-        <ul className="mt-10 space-y-4">
-          {pillars.map((item, i) => {
-            const Icon = item.icon;
-            return (
-              <motion.li
-                key={item.title}
-                className="flex items-start gap-4 rounded-2xl border border-border/70 bg-canvas px-4 py-4"
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.12 + i * 0.1, duration: 0.45 }}
-              >
-                <motion.span
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm"
-                  animate={{ y: [0, -3, 0] }}
+        {/* Laptop — slight rotate left, no brand marks */}
+        <motion.div
+          className="relative mx-auto mt-10 w-[min(100%,28rem)] sm:w-[32rem]"
+          initial={{ opacity: 0, y: 28, rotate: -2 }}
+          animate={{ opacity: 1, y: 0, rotate: -6 }}
+          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformOrigin: "center center" }}
+        >
+          <motion.div
+            animate={{ y: [0, -10, 0] }}
+            transition={{
+              duration: 5.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            {/* Screen lid */}
+            <div className="relative rounded-t-[1.1rem] border border-border/80 border-b-0 bg-card p-[0.55rem] pb-0 shadow-[0_30px_80px_-24px_rgba(17,24,39,0.4)] dark:shadow-[0_30px_80px_-24px_rgba(0,0,0,0.7)]">
+              <div className="relative aspect-[16/10] overflow-hidden rounded-t-[0.7rem] bg-white">
+                <Image
+                  src="/qalinraac-acadmy-logo.jpeg"
+                  alt="Qalinraac Academy"
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 420px, 520px"
+                  className="object-contain object-center"
+                />
+
+                {/* Soft blur scan — no hard edge */}
+                <motion.div
+                  className="pointer-events-none absolute inset-y-0 z-10 w-[45%] blur-md"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: ["-100%", "220%"] }}
                   transition={{
-                    delay: 0.9 + i * 0.2,
-                    duration: 4 + i * 0.5,
+                    duration: 5,
+                    delay: 1,
                     repeat: Infinity,
-                    ease: "easeInOut",
+                    ease: "linear",
+                    repeatDelay: 0.1,
                   }}
                 >
-                  <Icon className="h-5 w-5" />
-                </motion.span>
-                <div className="min-w-0 pt-0.5">
-                  <p className="text-base font-bold text-primary">
-                    {item.title}
-                  </p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">
-                    {item.detail}
-                  </p>
-                </div>
-              </motion.li>
-            );
-          })}
-        </ul>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/15 to-transparent dark:via-white/20" />
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Hinge */}
+            <div className="relative h-2.5 bg-gradient-to-b from-border to-muted">
+              <div className="absolute left-1/2 top-1/2 h-1 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted-foreground/25" />
+            </div>
+
+            {/* Base / keyboard deck — unbranded */}
+            <div className="relative mx-auto w-[108%] -translate-x-[3.7%] rounded-b-[0.9rem] border border-border/80 border-t-0 bg-card px-3 pb-3 pt-2 shadow-[0_18px_40px_-20px_rgba(17,24,39,0.45)]">
+              <div className="mx-auto h-1.5 w-24 rounded-full bg-muted-foreground/20" />
+              <div className="mt-2 h-2 rounded-sm bg-muted/80" />
+            </div>
+
+            <div className="mx-auto mt-5 h-3 w-[75%] rounded-full bg-foreground/15 blur-md" />
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );

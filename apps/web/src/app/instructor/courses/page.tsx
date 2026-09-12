@@ -9,7 +9,7 @@ import {
   TOTAL_STEPS,
   courseStatusLabel,
 } from "@/components/instructor/course-builder/types";
-import { Badge, courseStatusBadgeVariant } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -20,13 +20,7 @@ import {
   StickyActionCell,
   StickyActionHead,
 } from "@/components/ui/scroll-table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FilterMenu } from "@/components/ui/filter-menu";
 import { Spinner } from "@/components/ui/spinner";
 import {
   COURSE_CATEGORIES,
@@ -34,6 +28,7 @@ import {
   formatMoney,
   getApiErrorMessage,
   instructorCoursesRequest,
+  instructorOpenCourseEditorRequest,
   mediaPublicUrl,
   type InstructorCourse,
 } from "@/lib/api";
@@ -42,10 +37,8 @@ import { cn } from "@/lib/utils";
 const STATUS_FILTERS = [
   { value: "all", label: "All statuses" },
   { value: "draft", label: "Draft" },
-  { value: "pending_review", label: "Pending Review" },
+  { value: "in_progress", label: "In Progress" },
   { value: "published", label: "Published" },
-  { value: "rejected", label: "Rejected" },
-  { value: "archived", label: "Archived" },
 ];
 
 const SORTS = [
@@ -58,26 +51,30 @@ const SORTS = [
 
 type SortKey = (typeof SORTS)[number]["value"];
 
+function instructorLabel(course: InstructorCourse) {
+  return courseStatusLabel(course.status, course.displayStatus);
+}
+
+function isPublished(course: InstructorCourse) {
+  return (
+    course.displayStatus === "Published" || course.status === "published"
+  );
+}
+
+function isInProgress(course: InstructorCourse) {
+  return (
+    course.displayStatus === "In Progress" ||
+    course.status === "in_progress" ||
+    course.reviewStatus === "pending_review"
+  );
+}
+
 function builderPercent(course: InstructorCourse) {
-  if (course.status === "published") return 100;
+  if (isPublished(course)) return 100;
   return Math.min(
     100,
     Math.round(((course.builderStep ?? 1) / TOTAL_STEPS) * 100),
   );
-}
-
-function canEditCourse(status: string) {
-  return status !== "pending_review" && status !== "archived";
-}
-
-/** Primary builder CTA — always allow updates until pending review. */
-function builderActionLabel(course: InstructorCourse) {
-  if (course.status === "pending_review") return "Builder";
-  if (course.status === "archived") return "Builder";
-  if (course.status === "published") return "Update";
-  if (course.status === "rejected") return "Update";
-  if (builderPercent(course) >= 100) return "Update";
-  return "Continue";
 }
 
 export default function InstructorCoursesPage() {
@@ -91,6 +88,7 @@ export default function InstructorCoursesPage() {
   const [courseLimit, setCourseLimit] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editBusyId, setEditBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,7 +118,18 @@ export default function InstructorCoursesPage() {
 
   const courses = useMemo(() => {
     let list = [...items];
-    if (status !== "all") list = list.filter((c) => c.status === status);
+    if (status === "published") {
+      list = list.filter((c) => isPublished(c));
+    } else if (status === "in_progress") {
+      list = list.filter((c) => isInProgress(c) || c.activeRevision?.displayStatus === "In Progress");
+    } else if (status === "draft") {
+      list = list.filter(
+        (c) =>
+          !isPublished(c) &&
+          !isInProgress(c) &&
+          c.activeRevision?.displayStatus !== "In Progress",
+      );
+    }
     if (category !== "all") list = list.filter((c) => c.category === category);
     if (q.trim()) {
       const needle = q.trim().toLowerCase();
@@ -153,6 +162,21 @@ export default function InstructorCoursesPage() {
     [items],
   );
 
+  async function onEdit(course: InstructorCourse) {
+    if (isPublished(course)) {
+      setEditBusyId(course.id);
+      try {
+        const draft = await instructorOpenCourseEditorRequest(course.id);
+        window.location.href = `/instructor/courses/${draft.id}/builder`;
+      } catch (err) {
+        setError(getApiErrorMessage(err, "Could not open course editor."));
+        setEditBusyId(null);
+      }
+      return;
+    }
+    window.location.href = `/instructor/courses/${course.id}/builder`;
+  }
+
   return (
     <InstructorShell>
       <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -163,8 +187,7 @@ export default function InstructorCoursesPage() {
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {items.length} {items.length === 1 ? "course" : "courses"} · limit{" "}
-              {courseLimit} · rejected and archived courses don&apos;t use a
-              slot
+              {courseLimit}
             </p>
           </div>
           {canCreate ? (
@@ -194,52 +217,33 @@ export default function InstructorCoursesPage() {
           </label>
 
           <div className="w-[11rem]">
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger aria-label="Filter by status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_FILTERS.map((f) => (
-                  <SelectItem key={f.value} value={f.value}>
-                    {f.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FilterMenu
+              aria-label="Filter by status"
+              value={status}
+              onValueChange={setStatus}
+              options={STATUS_FILTERS}
+            />
           </div>
 
           <div className="w-[12rem]">
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger aria-label="Filter by category">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {usedCategories.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
-                    {c.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FilterMenu
+              aria-label="Filter by category"
+              value={category}
+              onValueChange={setCategory}
+              options={[
+                { value: "all", label: "All categories" },
+                ...usedCategories,
+              ]}
+            />
           </div>
 
           <div className="w-[12rem]">
-            <Select
+            <FilterMenu
+              aria-label="Sort courses"
               value={sort}
               onValueChange={(value) => setSort(value as SortKey)}
-            >
-              <SelectTrigger aria-label="Sort courses">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SORTS.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
-                    {s.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={SORTS}
+            />
           </div>
 
           <div className="ml-auto inline-flex h-11 items-center gap-1 rounded-full bg-muted p-1">
@@ -291,7 +295,7 @@ export default function InstructorCoursesPage() {
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {items.length === 0
-                ? "Create your first course to open the 9-step builder."
+                ? "Create your first course to open the builder."
                 : "Try a different search or clear the filters."}
             </p>
           </div>
@@ -299,9 +303,8 @@ export default function InstructorCoursesPage() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {courses.map((course) => {
               const thumb = mediaPublicUrl(course.thumbnailUrl);
-              const label = courseStatusLabel(course.status);
-              const editable = canEditCourse(course.status);
-              const actionLabel = builderActionLabel(course);
+              const label = instructorLabel(course);
+              const published = isPublished(course);
               return (
                 <article key={course.id} className="card-soft overflow-hidden">
                   <Link
@@ -330,7 +333,7 @@ export default function InstructorCoursesPage() {
                       >
                         {course.title}
                       </Link>
-                      <Badge variant={courseStatusBadgeVariant(course.status)}>
+                      <Badge variant={published ? "default" : "muted"}>
                         {label}
                       </Badge>
                     </div>
@@ -353,8 +356,7 @@ export default function InstructorCoursesPage() {
                       lessons
                     </p>
 
-                    {course.status !== "published" &&
-                    course.status !== "pending_review" ? (
+                    {!published ? (
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>Builder progress</span>
@@ -362,18 +364,6 @@ export default function InstructorCoursesPage() {
                         </div>
                         <Progress value={builderPercent(course)} />
                       </div>
-                    ) : null}
-
-                    {course.status === "published" ? (
-                      <p className="text-xs text-muted-foreground">
-                        You can update lessons anytime, then submit for review.
-                      </p>
-                    ) : null}
-
-                    {course.rejectionReason ? (
-                      <p className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-950 dark:text-red-200">
-                        {course.rejectionReason}
-                      </p>
                     ) : null}
 
                     <div className="flex items-center justify-between gap-3 pt-1">
@@ -392,28 +382,19 @@ export default function InstructorCoursesPage() {
                         </Link>
                       </Button>
                       <Button
-                        asChild
+                        type="button"
                         size="icon"
-                        variant={editable ? "default" : "outline"}
                         className="h-9 w-9"
-                        title={
-                          course.status === "pending_review"
-                            ? "View builder (read-only)"
-                            : course.status === "archived"
-                              ? "Open builder (read-only)"
-                              : `${actionLabel} in builder`
-                        }
+                        title="Edit in builder"
+                        disabled={editBusyId === course.id}
+                        onClick={() => void onEdit(course)}
+                        aria-label={`Edit ${course.title}`}
                       >
-                        <Link
-                          href={`/instructor/courses/${course.id}/builder`}
-                          aria-label={
-                            course.status === "pending_review"
-                              ? `View builder for ${course.title}`
-                              : `${actionLabel} ${course.title}`
-                          }
-                        >
+                        {editBusyId === course.id ? (
+                          <Spinner className="sm on-primary" label="Opening" />
+                        ) : (
                           <Pencil className="h-4 w-4" />
-                        </Link>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -440,8 +421,8 @@ export default function InstructorCoursesPage() {
                 <ScrollTableEmpty colSpan={8} />
               ) : (
                 courses.map((course) => {
-                  const editable = canEditCourse(course.status);
-                  const actionLabel = builderActionLabel(course);
+                  const label = instructorLabel(course);
+                  const published = isPublished(course);
                   return (
                     <tr
                       key={course.id}
@@ -464,10 +445,8 @@ export default function InstructorCoursesPage() {
                         {courseCategoryLabel(course.category) || "—"}
                       </td>
                       <td className="px-5 py-4">
-                        <Badge
-                          variant={courseStatusBadgeVariant(course.status)}
-                        >
-                          {courseStatusLabel(course.status)}
+                        <Badge variant={published ? "default" : "muted"}>
+                          {label}
                         </Badge>
                       </td>
                       <td className="px-5 py-4 text-muted-foreground">
@@ -500,30 +479,13 @@ export default function InstructorCoursesPage() {
                             </Link>
                           </Button>
                           <Button
-                            asChild
+                            type="button"
                             size="sm"
-                            variant={editable ? "default" : "outline"}
-                            title={
-                              course.status === "pending_review"
-                                ? "View builder (read-only)"
-                                : course.status === "archived"
-                                  ? "Open builder (read-only)"
-                                  : `${actionLabel} in builder`
-                            }
+                            disabled={editBusyId === course.id}
+                            onClick={() => void onEdit(course)}
                           >
-                            <Link
-                              href={`/instructor/courses/${course.id}/builder`}
-                              aria-label={
-                                course.status === "pending_review"
-                                  ? `View builder for ${course.title}`
-                                  : `${actionLabel} ${course.title}`
-                              }
-                            >
-                              <Pencil className="h-4 w-4" />
-                              {course.status === "pending_review"
-                                ? "Builder"
-                                : actionLabel}
-                            </Link>
+                            <Pencil className="h-4 w-4" />
+                            Edit
                           </Button>
                         </div>
                       </StickyActionCell>

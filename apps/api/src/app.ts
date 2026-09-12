@@ -27,6 +27,7 @@ import { adminRouter } from "./modules/admin/admin.routes.js";
 import { studentsRouter } from "./modules/students/students.routes.js";
 import { instructorsRouter } from "./modules/instructors/instructors.routes.js";
 import { academicRouter } from "./modules/academic/academic.routes.js";
+import { publicRouter } from "./modules/public/public.routes.js";
 import { asyncHandler } from "./lib/async-handler.js";
 
 export function createApp(): Express {
@@ -88,6 +89,7 @@ export function createApp(): Express {
   app.use(`${p}/students`, studentsRouter);
   app.use(`${p}/instructors`, instructorsRouter);
   app.use(`${p}/academic`, academicRouter);
+  app.use(`${p}/public`, publicRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

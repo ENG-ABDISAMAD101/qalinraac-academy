@@ -7,6 +7,11 @@ export async function enroll(req: Request, res: Response) {
   return sendSuccess(res, data, 201);
 }
 
+export async function checkout(req: Request, res: Response) {
+  const data = await service.checkoutCourse(req.body, req.user!.id);
+  return sendSuccess(res, data);
+}
+
 export async function mine(req: Request, res: Response) {
   const data = await service.myCourses(req.user!.id);
   return sendSuccess(res, data);

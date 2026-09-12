@@ -19,7 +19,8 @@ export function safeAuthRedirect(
   return redirectParam;
 }
 
-export function authRegisterHref(redirectTo = "/register") {
+export function authRegisterHref(redirectTo?: string) {
+  if (!redirectTo) return "/auth/register";
   return `/auth/register?redirect=${encodeURIComponent(redirectTo)}`;
 }
 

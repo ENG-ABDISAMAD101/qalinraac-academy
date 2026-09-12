@@ -364,6 +364,7 @@ export type StudentDashboardData = {
     progressPercent: number;
     watched: number;
     total: number;
+    instructor?: { id: string; fullName: string; avatarUrl?: string } | null;
   }[];
   upcomingQuizzes: {
     id: string;
@@ -398,6 +399,8 @@ export type StudentCourseCard = {
   thumbnailUrl?: string;
   progressPercent: number;
   status: string;
+  watched: number;
+  total: number;
   instructor?: { id: string; fullName: string; avatarUrl?: string } | null;
 };
 
@@ -409,6 +412,8 @@ export async function studentCoursesRequest() {
         courseId: string;
         status: string;
         progressPercent: number;
+        watched?: number;
+        total?: number;
         title?: string;
         description?: string;
         thumbnailUrl?: string;
@@ -431,6 +436,8 @@ export async function studentCoursesRequest() {
     thumbnailUrl: row.thumbnailUrl ?? row.course?.thumbnailUrl,
     progressPercent: row.progressPercent ?? 0,
     status: row.status,
+    watched: row.watched ?? 0,
+    total: row.total ?? 0,
     instructor: row.instructor ?? null,
   })) satisfies StudentCourseCard[];
 }
@@ -481,6 +488,18 @@ export async function enrollCourseRequest(courseId: string) {
   const { data } = await api.post<ApiSuccess<unknown>>("/enrollments", {
     courseId,
   });
+  return data.data;
+}
+
+export async function checkoutCourseRequest(input: {
+  courseId: string;
+  paymentMethod?: "evc" | "zaad" | "sahal" | "card";
+  phone?: string;
+}) {
+  const { data } = await api.post<ApiSuccess<unknown>>(
+    "/enrollments/checkout",
+    input,
+  );
   return data.data;
 }
 
@@ -581,6 +600,7 @@ export async function uploadFileRequest(file: File) {
       _id?: string;
       id?: string;
       originalName: string;
+      path?: string;
       url?: string;
       storage?: "local" | "r2";
     }>
@@ -589,6 +609,7 @@ export async function uploadFileRequest(file: File) {
   return {
     id: String(asset.id ?? asset._id ?? ""),
     originalName: asset.originalName,
+    path: asset.path,
     url: asset.url,
     storage: asset.storage,
   };
@@ -632,6 +653,9 @@ export type FeedbackListData = {
     description?: string;
     courseId: string;
     courseTitle: string;
+    lessonTitle?: string;
+    questionCount?: number;
+    passingScore?: number;
     status: string;
     createdAt?: string;
   }[];
@@ -761,29 +785,56 @@ export async function requestCertificateApi(input: {
   return data.data;
 }
 
+export type StudentSupportTicket = {
+  id: string;
+  subject: string;
+  body: string;
+  status: string;
+  priority?: string;
+  attachmentIds?: string[];
+  replies: { authorId: string; body: string; createdAt: string }[];
+  createdAt: string;
+  updatedAt?: string;
+};
+
 export async function studentSupportListRequest() {
-  const { data } = await api.get<
-    ApiSuccess<
-      {
-        id: string;
-        subject: string;
-        body: string;
-        status: string;
-        createdAt: string;
-      }[]
-    >
-  >("/students/me/support");
-  return data.data;
+  const { data } = await api.get<ApiSuccess<StudentSupportTicket[]>>(
+    "/students/me/support",
+  );
+  return (Array.isArray(data.data) ? data.data : []).map((t) => ({
+    ...t,
+    replies: Array.isArray(t.replies) ? t.replies : [],
+  }));
 }
 
 export async function createSupportTicketRequest(input: {
   subject: string;
   body: string;
+  priority?: "high" | "medium" | "urgent";
   attachmentIds?: string[];
 }) {
-  const { data } = await api.post<ApiSuccess<unknown>>(
+  const { data } = await api.post<ApiSuccess<StudentSupportTicket>>(
     "/students/me/support",
     input,
+  );
+  return data.data;
+}
+
+export async function updateSupportTicketStatusRequest(
+  id: string,
+  status: "open" | "resolved" | "closed",
+) {
+  const { data } = await api.patch<ApiSuccess<StudentSupportTicket>>(
+    `/students/me/support/${id}`,
+    { status },
+  );
+  return data.data;
+}
+
+export async function replySupportTicketRequest(id: string, body: string) {
+  const { data } = await api.post<ApiSuccess<StudentSupportTicket>>(
+    `/students/me/support/${id}/replies`,
+    { body },
   );
   return data.data;
 }
@@ -839,22 +890,24 @@ export type InstructorDashboardData = {
   stats: {
     totalCourses: number;
     publishedCourses: number;
-    pendingCourses: number;
-    draftCourses?: number;
-    rejectedCourses?: number;
-    archivedCourses?: number;
+    inProgressCourses?: number;
+    draftCourses: number;
     totalStudents: number;
     totalEarnings: number;
     availableBalance: number;
     pendingWithdrawal: number;
+    instructorSharePercent?: number;
   };
   courseLimit: number;
   canCreateCourse: boolean;
   recentCourses: {
     id: string;
     title: string;
+    description?: string;
     status: string;
+    displayStatus?: "Draft" | "In Progress" | "Published";
     thumbnailUrl?: string;
+    lessons?: number;
     createdAt?: string;
   }[];
 };
@@ -944,6 +997,19 @@ export type InstructorCourse = {
   description?: string;
   shortDescription?: string;
   status: string;
+  reviewStatus?: string;
+  isDisabled?: boolean;
+  /** Instructor UI: Draft | In Progress | Published */
+  displayStatus?: "Draft" | "In Progress" | "Published";
+  liveCourseId?: string;
+  isRevisionDraft?: boolean;
+  liveDisplayStatus?: "Published";
+  activeRevision?: {
+    id: string;
+    status?: string;
+    reviewStatus?: string;
+    displayStatus?: "Draft" | "In Progress" | "Published";
+  };
   level?: string;
   category?: CourseCategory;
   language?: string;
@@ -1127,6 +1193,52 @@ export async function instructorRequestUpdateRequest(courseId: string) {
   return data.data;
 }
 
+/** Published → draft revision (or existing revision) for editing */
+export async function instructorOpenCourseEditorRequest(courseId: string) {
+  const { data } = await api.post<ApiSuccess<InstructorCourse>>(
+    `/instructors/me/courses/${courseId}/edit`,
+  );
+  return data.data;
+}
+
+export type AssignmentGradeStatus = "pending" | "need_revision" | "approved";
+
+export async function instructorGradeSubmissionRequest(
+  assignmentId: string,
+  userId: string,
+  input: {
+    score: number;
+    feedback?: string;
+    status?: AssignmentGradeStatus;
+  },
+) {
+  const { data } = await api.post<
+    ApiSuccess<{
+      id: string;
+      status: AssignmentGradeStatus;
+      score: number;
+      feedback?: string;
+    }>
+  >(`/instructors/me/assignments/${assignmentId}/submissions/${userId}/grade`, input);
+  return data.data;
+}
+
+export async function instructorReviewQuizAttemptRequest(
+  quizId: string,
+  attemptId: string,
+  input: { feedback?: string; allowRetake?: boolean },
+) {
+  const { data } = await api.post<
+    ApiSuccess<{
+      id: string;
+      reviewStatus: string;
+      instructorFeedback?: string;
+      allowRetake: boolean;
+    }>
+  >(`/instructors/me/quizzes/${quizId}/attempts/${attemptId}/review`, input);
+  return data.data;
+}
+
 /** Academic / SuperAdmin: approve pending course → Published */
 export async function approveCourseRequest(courseId: string) {
   const { data } = await api.post<ApiSuccess<unknown>>(
@@ -1307,6 +1419,29 @@ export async function instructorCreateAssignmentRequest(input: {
   return data.data;
 }
 
+export async function instructorUpdateAssignmentRequest(
+  assignmentId: string,
+  input: {
+    title?: string;
+    description?: string;
+    lessonId?: string;
+    maxScore?: number;
+  },
+) {
+  const { data } = await api.patch<ApiSuccess<{ id: string }>>(
+    `/instructors/me/assignments/${assignmentId}`,
+    input,
+  );
+  return data.data;
+}
+
+export async function instructorDeleteAssignmentRequest(assignmentId: string) {
+  const { data } = await api.delete<ApiSuccess<{ deleted: boolean }>>(
+    `/instructors/me/assignments/${assignmentId}`,
+  );
+  return data.data;
+}
+
 export async function instructorAssignmentDetailRequest(assignmentId: string) {
   const { data } = await api.get<ApiSuccess<Record<string, unknown>>>(
     `/instructors/me/assignments/${assignmentId}`,
@@ -1334,7 +1469,14 @@ export async function instructorQuizzesRequest(q?: string) {
         description?: string;
         courseId: string;
         courseTitle: string;
+        lessonId?: string;
         questionCount: number;
+        questions?: {
+          prompt: string;
+          options: string[];
+          correctIndex: number;
+          points: number;
+        }[];
         passingScore: number;
         attempts: number;
         avgScore: number;
@@ -1361,6 +1503,35 @@ export async function instructorCreateQuizRequest(input: {
   const { data } = await api.post<ApiSuccess<{ id: string }>>(
     "/instructors/me/quizzes",
     input,
+  );
+  return data.data;
+}
+
+export async function instructorUpdateQuizRequest(
+  quizId: string,
+  input: {
+    title?: string;
+    description?: string;
+    lessonId?: string | null;
+    passingScore?: number;
+    questions?: {
+      prompt: string;
+      options: string[];
+      correctIndex: number;
+      points?: number;
+    }[];
+  },
+) {
+  const { data } = await api.patch<ApiSuccess<{ id: string }>>(
+    `/instructors/me/quizzes/${quizId}`,
+    input,
+  );
+  return data.data;
+}
+
+export async function instructorDeleteQuizRequest(quizId: string) {
+  const { data } = await api.delete<ApiSuccess<{ deleted: boolean }>>(
+    `/instructors/me/quizzes/${quizId}`,
   );
   return data.data;
 }
@@ -1509,19 +1680,24 @@ export async function instructorAgreementsRequest() {
   return data.data;
 }
 
+export type InstructorSupportTicket = {
+  id: string;
+  subject: string;
+  body: string;
+  status: string;
+  priority?: string;
+  replies?: { authorId?: string; body: string; createdAt: string }[];
+  createdAt: string;
+};
+
 export async function instructorSupportListRequest() {
-  const { data } = await api.get<
-    ApiSuccess<
-      {
-        id: string;
-        subject: string;
-        body: string;
-        status: string;
-        createdAt: string;
-      }[]
-    >
-  >("/instructors/me/support");
-  return data.data;
+  const { data } = await api.get<ApiSuccess<InstructorSupportTicket[]>>(
+    "/instructors/me/support",
+  );
+  return (Array.isArray(data.data) ? data.data : []).map((t) => ({
+    ...t,
+    replies: Array.isArray(t.replies) ? t.replies : [],
+  }));
 }
 
 export async function instructorCreateSupportRequest(input: {
@@ -1529,11 +1705,21 @@ export async function instructorCreateSupportRequest(input: {
   body: string;
   attachmentIds?: string[];
 }) {
-  const { data } = await api.post<ApiSuccess<unknown>>(
+  const { data } = await api.post<ApiSuccess<InstructorSupportTicket>>(
     "/instructors/me/support",
     input,
   );
   return data.data;
+}
+
+export async function instructorSupportDetailRequest(ticketId: string) {
+  const { data } = await api.get<ApiSuccess<InstructorSupportTicket>>(
+    `/instructors/me/support/${ticketId}`,
+  );
+  return {
+    ...data.data,
+    replies: Array.isArray(data.data.replies) ? data.data.replies : [],
+  };
 }
 
 /* ─── Academic portal ─────────────────────────────────────────────── */
@@ -1706,10 +1892,22 @@ export async function academicRejectCourseRequest(
 export async function academicSetCourseStatusRequest(
   courseId: string,
   status: "draft" | "published",
+  reason?: string,
 ) {
   const { data } = await api.post<ApiSuccess<unknown>>(
     `/academic/courses/${courseId}/set-status`,
-    { status },
+    { status, reason },
+  );
+  return data.data;
+}
+
+export async function academicDisableCourseRequest(
+  courseId: string,
+  disabled = true,
+) {
+  const { data } = await api.post<ApiSuccess<unknown>>(
+    `/academic/courses/${courseId}/disable`,
+    { disabled },
   );
   return data.data;
 }
@@ -2042,3 +2240,235 @@ export async function financeUpdateProfileRequest(input: {
   );
   return data.data;
 }
+
+export type AdminDashboardData = {
+  stats: {
+    totalStudents: number;
+    totalInstructors: number;
+    totalCourses: number;
+    activeCourses: number;
+    openSupportTickets: number;
+    totalUsers: number;
+  };
+  recentTickets: Array<Record<string, unknown>>;
+  recentUsers: Array<Record<string, unknown>>;
+};
+
+export async function adminDashboardRequest() {
+  const { data } = await api.get<ApiSuccess<AdminDashboardData>>(
+    "/admin/dashboard",
+  );
+  return data.data;
+}
+
+export async function adminStudentsRequest(q?: string) {
+  const { data } = await api.get<
+    ApiSuccess<{ items: Record<string, unknown>[]; total: number }>
+  >("/admin/students", { params: q ? { q } : undefined });
+  return data.data;
+}
+
+export async function adminStudentRequest(id: string) {
+  const { data } = await api.get<ApiSuccess<Record<string, unknown>>>(
+    `/admin/students/${id}`,
+  );
+  return data.data;
+}
+
+export async function adminInstructorsRequest(q?: string) {
+  const { data } = await api.get<
+    ApiSuccess<{ items: Record<string, unknown>[]; total: number }>
+  >("/admin/instructors", { params: q ? { q } : undefined });
+  return data.data;
+}
+
+export async function adminInstructorRequest(id: string) {
+  const { data } = await api.get<ApiSuccess<Record<string, unknown>>>(
+    `/admin/instructors/${id}`,
+  );
+  return data.data;
+}
+
+export async function adminCoursesRequest(opts?: { q?: string; status?: string }) {
+  const { data } = await api.get<
+    ApiSuccess<{
+      items: Record<string, unknown>[];
+      total: number;
+      stats: { pending: number; published: number };
+    }>
+  >("/admin/courses", { params: opts });
+  return data.data;
+}
+
+export async function adminCertificatesRequest(opts?: {
+  q?: string;
+  status?: string;
+}) {
+  const { data } = await api.get<
+    ApiSuccess<{ items: Record<string, unknown>[]; total: number }>
+  >("/admin/certificates", { params: opts });
+  return data.data;
+}
+
+export async function adminCertificateRequest(id: string) {
+  const { data } = await api.get<ApiSuccess<Record<string, unknown>>>(
+    `/admin/certificates/${id}`,
+  );
+  return data.data;
+}
+
+export async function adminUploadCertificateRequest(
+  id: string,
+  input: { filePath: string; fileUrl?: string },
+) {
+  const { data } = await api.post<ApiSuccess<Record<string, unknown>>>(
+    `/admin/certificates/${id}/upload`,
+    input,
+  );
+  return data.data;
+}
+
+export async function adminTicketsRequest(opts?: {
+  q?: string;
+  status?: string;
+  priority?: string;
+}) {
+  const { data } = await api.get<
+    ApiSuccess<{
+      items: Record<string, unknown>[];
+      total: number;
+      stats: { open: number; resolved: number };
+    }>
+  >("/admin/support", { params: opts });
+  return data.data;
+}
+
+export async function adminTicketRequest(id: string) {
+  const { data } = await api.get<ApiSuccess<Record<string, unknown>>>(
+    `/admin/support/${id}`,
+  );
+  return data.data;
+}
+
+export async function adminReplyTicketRequest(id: string, body: string) {
+  const { data } = await api.post<ApiSuccess<Record<string, unknown>>>(
+    `/admin/support/${id}/reply`,
+    { body },
+  );
+  return data.data;
+}
+
+export async function adminUpdateTicketRequest(
+  id: string,
+  input: { status?: "open" | "resolved"; priority?: "high" | "medium" | "urgent" },
+) {
+  const { data } = await api.patch<ApiSuccess<Record<string, unknown>>>(
+    `/admin/support/${id}`,
+    input,
+  );
+  return data.data;
+}
+
+export async function adminReportsRequest() {
+  const { data } = await api.get<ApiSuccess<Record<string, unknown>>>(
+    "/admin/reports",
+  );
+  return data.data;
+}
+
+export async function adminUpdateProfileRequest(input: {
+  fullName?: string;
+  phone?: string;
+  bio?: string;
+  avatarUrl?: string;
+}) {
+  const { data } = await api.patch<ApiSuccess<AuthUser>>(
+    "/admin/profile",
+    input,
+  );
+  return data.data;
+}
+
+export async function adminNotificationsRequest() {
+  const { data } = await api.get<ApiSuccess<Record<string, unknown>[]>>(
+    "/admin/notifications",
+  );
+  return data.data;
+}
+
+export type PublicCourseListItem = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  level: string;
+  thumbnailUrl?: string;
+  priceCents: number;
+  listPriceCents: number;
+  currency: string;
+  isFree: boolean;
+  accessDuration: string;
+  accessLabel: string;
+  durationLabel: string;
+  lessonCount: number;
+  instructor: { id: string; fullName: string; avatarUrl?: string } | null;
+};
+
+export type PublicCourseDetail = PublicCourseListItem & {
+  subtitle?: string;
+  shortDescription?: string;
+  promoVideoUrl?: string;
+  learningOutcomes: string[];
+  requirements: string[];
+  targetAudience: string[];
+  discountPriceCents?: number;
+  sectionCount: number;
+  totalMinutes: number;
+  instructors: { id: string; fullName: string; avatarUrl?: string }[];
+  included: string[];
+  sections: {
+    id: string;
+    index: number;
+    title: string;
+    description?: string;
+    lessonCount: number;
+    durationLabel: string;
+    freePreviewCount: number;
+    lessons: {
+      id: string;
+      title: string;
+      durationMinutes: number;
+      durationLabel: string;
+      isPreview: boolean;
+      contentType: string;
+    }[];
+  }[];
+};
+
+export async function publicCoursesRequest(q?: string) {
+  const { data } = await api.get<
+    ApiSuccess<{ items: PublicCourseListItem[]; total: number }>
+  >("/public/courses", { params: q ? { q } : undefined });
+  return data.data;
+}
+
+export async function publicCourseDetailRequest(idOrSlug: string) {
+  const { data } = await api.get<ApiSuccess<PublicCourseDetail>>(
+    `/public/courses/${encodeURIComponent(idOrSlug)}`,
+  );
+  return data.data;
+}
+
+export async function createPaymentRequest(input: {
+  invoiceId: string;
+  provider: "stripe" | "waafi" | "manual";
+  accountNo?: string;
+}) {
+  const { data } = await api.post<ApiSuccess<unknown>>(
+    "/finance/payments",
+    input,
+  );
+  return data.data;
+}
+

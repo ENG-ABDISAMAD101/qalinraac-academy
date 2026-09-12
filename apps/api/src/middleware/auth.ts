@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import type { Permission } from "@qalinraac/shared";
+import { ROLE_PERMISSIONS, type AcademyRole, type Permission } from "@qalinraac/shared";
 import { AppError } from "../lib/app-error.js";
 import { verifyAccessToken, type AccessTokenPayload } from "../lib/tokens.js";
 import { User } from "../models/User.js";
@@ -16,6 +16,11 @@ declare global {
   }
 }
 
+function permissionsForRole(role: string): Permission[] {
+  const key = role as AcademyRole;
+  return ROLE_PERMISSIONS[key] ? [...ROLE_PERMISSIONS[key]] : [];
+}
+
 export async function authenticate(req: Request, _res: Response, next: NextFunction) {
   try {
     const header = req.headers.authorization;
@@ -28,12 +33,14 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     if (!user || !user.isActive) {
       throw new AppError(401, "UNAUTHORIZED", "User not found or inactive");
     }
+    const rolePerms = permissionsForRole(user.role);
+    const userPerms = (user.permissions ?? []) as Permission[];
     req.user = {
       id: String(user._id),
       sub: String(user._id),
       email: user.email,
       role: user.role,
-      permissions: user.permissions as Permission[],
+      permissions: [...new Set([...rolePerms, ...userPerms])],
     };
     next();
   } catch (err) {

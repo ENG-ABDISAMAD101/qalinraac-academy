@@ -69,6 +69,24 @@ export async function getSupport(req: Request, res: Response) {
   return sendSuccess(res, data);
 }
 
+export async function updateSupportStatus(req: Request, res: Response) {
+  const data = await service.updateMySupportTicketStatus(
+    req.user!.id,
+    req.params.id,
+    req.body,
+  );
+  return sendSuccess(res, data);
+}
+
+export async function replySupport(req: Request, res: Response) {
+  const data = await service.replyToMySupportTicket(
+    req.user!.id,
+    req.params.id,
+    req.body,
+  );
+  return sendSuccess(res, data, 201);
+}
+
 export async function updateProfile(req: Request, res: Response) {
   const data = await service.updateMyProfile(req.user!.id, req.body);
   return sendSuccess(res, data);

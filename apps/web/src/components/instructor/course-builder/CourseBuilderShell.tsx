@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   CloudOff,
   Info,
-  Save,
 } from "lucide-react";
 import { statusTone } from "@/components/instructor/InstructorShell";
 import { Button } from "@/components/ui/button";
@@ -37,28 +36,39 @@ const COMPLETE_DURATION_MS = 60_000;
 
 function HeaderStatusText({
   status,
+  displayStatus,
+  isRevisionDraft,
   saveStatus,
   lastSavedAt,
   readyToPublish,
   readOnly,
 }: {
   status: string;
+  displayStatus?: string;
+  isRevisionDraft?: boolean;
   saveStatus: SaveStatus;
   lastSavedAt: Date | null;
   readyToPublish: boolean;
   readOnly: boolean;
 }) {
-  if (status === "pending_review") {
+  if (status === "in_progress" || status === "pending_review") {
     return (
-      <span className="text-xs font-medium text-amber-800 dark:text-amber-200">
-        Pending Review · view only
+      <span className="text-xs font-medium text-muted-foreground">
+        In Progress · pending Academic review (view only)
+      </span>
+    );
+  }
+  if (isRevisionDraft) {
+    return (
+      <span className="text-xs font-medium text-primary">
+        Published · editing changes (not live yet)
       </span>
     );
   }
   if (status === "published" && !readOnly) {
     return (
       <span className="text-xs font-medium text-primary">
-        Published · updates re-enter review
+        Published · use Edit to create a draft revision
       </span>
     );
   }
@@ -82,7 +92,7 @@ function HeaderStatusText({
     return (
       <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
         <CheckCircle2 className="h-3.5 w-3.5" />
-        Ready to publish
+        Ready to mark complete
       </span>
     );
   }
@@ -98,7 +108,9 @@ function HeaderStatusText({
     );
   }
   return (
-    <span className="text-xs text-muted-foreground">Draft in progress</span>
+    <span className="text-xs text-muted-foreground">
+      {displayStatus === "In Progress" ? "In Progress" : "Draft in progress"}
+    </span>
   );
 }
 
@@ -106,6 +118,9 @@ export type CourseBuilderShellProps = {
   courseId: string;
   courseTitle: string;
   status: string;
+  displayStatus?: string;
+  reviewStatus?: string;
+  isRevisionDraft?: boolean;
   readOnly: boolean;
   step: BuilderStepNumber;
   onStepChange: (step: BuilderStepNumber) => void;
@@ -126,6 +141,9 @@ export function CourseBuilderShell({
   courseId,
   courseTitle,
   status,
+  displayStatus,
+  reviewStatus,
+  isRevisionDraft = false,
   readOnly,
   step,
   onStepChange,
@@ -141,7 +159,7 @@ export function CourseBuilderShell({
   actionError,
   children,
 }: CourseBuilderShellProps) {
-  const label = courseStatusLabel(status);
+  const label = courseStatusLabel(status, displayStatus);
   const percent = Math.round((step / TOTAL_STEPS) * 100);
   const current = BUILDER_STEPS[step - 1];
 
@@ -158,9 +176,17 @@ export function CourseBuilderShell({
   /** Lock only while the API submit is in flight (not during the wait bar). */
   const progressLocked = progressOpen && submitting && !progressDone && !progressError;
 
+  const underReview =
+    status === "in_progress" ||
+    reviewStatus === "pending_review" ||
+    status === "pending_review";
+
   const canMarkComplete =
     !readOnly &&
-    (status === "draft" || status === "rejected" || status === "published");
+    (status === "draft" ||
+      status === "rejected" ||
+      reviewStatus === "changes_requested" ||
+      isRevisionDraft);
 
   useEffect(() => {
     return () => {
@@ -286,37 +312,13 @@ export function CourseBuilderShell({
             <div className="flex flex-col items-end gap-2">
               <HeaderStatusText
                 status={status}
+                displayStatus={displayStatus}
+                isRevisionDraft={isRevisionDraft}
                 saveStatus={saveStatus}
                 lastSavedAt={lastSavedAt}
                 readyToPublish={readyToPublish}
                 readOnly={readOnly}
               />
-              {!readOnly ? (
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={actionBusy || progressOpen}
-                    onClick={onSaveDraft}
-                  >
-                    <Save className="h-4 w-4" />
-                    Save as Draft
-                  </Button>
-                  {canMarkComplete ? (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      disabled={actionBusy || progressOpen}
-                      onClick={openConfirm}
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                      Mark Course as Complete
-                    </Button>
-                  ) : null}
-                </div>
-              ) : null}
             </div>
           </div>
 
@@ -363,9 +365,28 @@ export function CourseBuilderShell({
       </div>
 
       <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-        {readOnly && status !== "pending_review" ? (
-          <p className="mb-5 flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+        {underReview ? (
+          <p className="mb-5 flex items-start gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <span>
+              <strong className="font-semibold">Pending Academic Review.</strong>{" "}
+              Your course has been submitted for review. You can no longer modify
+              the submitted version until it is returned.
+            </span>
+          </p>
+        ) : null}
+
+        {isRevisionDraft && !underReview ? (
+          <p className="mb-5 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
+            <strong className="font-semibold">Editing Changes.</strong> Your
+            changes are not live yet. They will be reviewed before being
+            published.
+          </p>
+        ) : null}
+
+        {readOnly && status === "archived" ? (
+          <p className="mb-5 flex items-start gap-2 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             Archived courses are read-only.
           </p>
         ) : null}
@@ -428,16 +449,15 @@ export function CourseBuilderShell({
           ) : canMarkComplete ? (
             <Button
               type="button"
-              variant="secondary"
               disabled={actionBusy || progressOpen}
               onClick={openConfirm}
             >
               <CheckCircle2 className="h-4 w-4" />
-              Mark Course as Complete
+              Mark as Completed
             </Button>
           ) : (
             <Button type="button" variant="outline" disabled>
-              {status === "pending_review" ? "In review" : "Done"}
+              {underReview ? "In review" : "Done"}
             </Button>
           )}
         </div>
@@ -446,7 +466,11 @@ export function CourseBuilderShell({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Are you ready to publish your course?</DialogTitle>
+            <DialogTitle>
+              {isRevisionDraft
+                ? "Submit your changes for review?"
+                : "Mark this course as completed?"}
+            </DialogTitle>
             <DialogDescription className="sr-only">
               Confirm submitting this course for Academic review.
             </DialogDescription>
@@ -455,9 +479,9 @@ export function CourseBuilderShell({
           <div className="flex gap-3 rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm text-foreground dark:border-primary/20 dark:bg-primary/10">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <p>
-              You’re about to submit this course for Academic review. Make sure
-              you have finished adding all the videos, lessons, assignments,
-              quizzes, and other content you want students to access.
+              {isRevisionDraft
+                ? "The published course stays live for students. Your changes move to In Progress and wait for Academic review."
+                : "Status becomes In Progress and the course is sent for Academic review. Students cannot see it until it is published."}
             </p>
           </div>
 

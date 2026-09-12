@@ -94,7 +94,7 @@ export function FileDropzone({
         }}
         onDrop={onDrop}
         className={cn(
-          "flex flex-col items-center justify-center rounded-xl border border-dashed px-4 py-9 text-center transition-colors",
+          "flex flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-10 text-center transition-colors",
           dragging
             ? "border-primary bg-primary/[0.04] dark:border-primary dark:bg-primary/10"
             : "border-border bg-card",
@@ -116,7 +116,7 @@ export function FileDropzone({
           </button>{" "}
           to upload
         </p>
-        <p className="mt-1.5 text-xs text-text-muted">
+        <p className="mt-1.5 text-xs text-muted-foreground">
           Supported formats: {formatsLabel}
         </p>
         <input

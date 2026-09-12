@@ -91,7 +91,11 @@ export async function createPayment(
       simulated: true,
       providerRef: `manual_${Date.now()}`,
       status: "succeeded" as const,
-      raw: { message: "Manual payment recorded" },
+      raw: {
+        message:
+          "Simulated payment — real gateway will be configured later",
+        accountNo: input.accountNo ?? null,
+      },
     };
   }
 

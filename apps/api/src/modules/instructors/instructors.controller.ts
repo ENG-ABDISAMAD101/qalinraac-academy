@@ -30,6 +30,13 @@ export async function getCourse(req: Request, res: Response) {
   return sendSuccess(res, await service.getCourse(id(req), req.params.id));
 }
 
+export async function openCourseEditor(req: Request, res: Response) {
+  return sendSuccess(
+    res,
+    await service.openCourseEditor(id(req), req.params.id),
+  );
+}
+
 export async function updateCourse(req: Request, res: Response) {
   return sendSuccess(
     res,
@@ -154,6 +161,20 @@ export async function createAssignment(req: Request, res: Response) {
   );
 }
 
+export async function updateAssignment(req: Request, res: Response) {
+  return sendSuccess(
+    res,
+    await service.updateAssignment(id(req), req.params.id, req.body),
+  );
+}
+
+export async function deleteAssignment(req: Request, res: Response) {
+  return sendSuccess(
+    res,
+    await service.deleteAssignment(id(req), req.params.id),
+  );
+}
+
 export async function getAssignment(req: Request, res: Response) {
   return sendSuccess(
     res,
@@ -196,10 +217,36 @@ export async function createQuiz(req: Request, res: Response) {
   return sendSuccess(res, await service.createQuiz(id(req), req.body), 201);
 }
 
+export async function updateQuiz(req: Request, res: Response) {
+  return sendSuccess(
+    res,
+    await service.updateQuiz(id(req), req.params.id, req.body),
+  );
+}
+
+export async function deleteQuiz(req: Request, res: Response) {
+  return sendSuccess(res, await service.deleteQuiz(id(req), req.params.id));
+}
+
 export async function getQuizResults(req: Request, res: Response) {
   return sendSuccess(
     res,
     await service.getQuizResults(id(req), req.params.id),
+  );
+}
+
+export async function reviewQuizAttempt(req: Request, res: Response) {
+  return sendSuccess(
+    res,
+    await service.reviewQuizAttempt(
+      id(req),
+      req.params.id,
+      req.params.attemptId,
+      {
+        feedback: req.body?.feedback,
+        allowRetake: Boolean(req.body?.allowRetake),
+      },
+    ),
   );
 }
 

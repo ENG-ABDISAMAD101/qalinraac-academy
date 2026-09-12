@@ -8,6 +8,7 @@ import { BasicInfoStep } from "@/components/instructor/course-builder/steps/Basi
 import { AssessmentStep } from "@/components/instructor/course-builder/steps/AssessmentStep";
 import { CurriculumStep } from "@/components/instructor/course-builder/steps/CurriculumStep";
 import { DescriptionStep } from "@/components/instructor/course-builder/steps/DescriptionStep";
+import { IntroVideoStep } from "@/components/instructor/course-builder/steps/IntroVideoStep";
 import { LessonsStep } from "@/components/instructor/course-builder/steps/LessonsStep";
 import { OutcomesStep } from "@/components/instructor/course-builder/steps/OutcomesStep";
 import { PricingStep } from "@/components/instructor/course-builder/steps/PricingStep";
@@ -49,6 +50,7 @@ const EMPTY_DRAFT: CourseDraft = {
   accessDuration: "lifetime",
   currency: "USD",
   thumbnailUrl: "",
+  promoVideoUrl: "",
 };
 
 function toDraft(course: InstructorCourseDetail): CourseDraft {
@@ -66,6 +68,7 @@ function toDraft(course: InstructorCourseDetail): CourseDraft {
     accessDuration: (course.accessDuration as AccessDuration) ?? "lifetime",
     currency: course.currency ?? "USD",
     thumbnailUrl: course.thumbnailUrl ?? "",
+    promoVideoUrl: course.promoVideoUrl ?? "",
   };
 }
 
@@ -91,6 +94,9 @@ function toApiPatch(patch: Partial<CourseDraft>): InstructorCourseInput {
   if (patch.accessDuration) payload.accessDuration = patch.accessDuration;
   if (patch.currency) payload.currency = patch.currency;
   if (patch.thumbnailUrl !== undefined) payload.thumbnailUrl = patch.thumbnailUrl;
+  if (patch.promoVideoUrl !== undefined) {
+    payload.promoVideoUrl = patch.promoVideoUrl;
+  }
   return payload;
 }
 
@@ -114,6 +120,9 @@ export default function CourseBuilderPage() {
   const [draft, setDraftState] = useState<CourseDraft>(EMPTY_DRAFT);
   const [curriculum, setCurriculum] = useState<InstructorModule[]>([]);
   const [status, setStatus] = useState("");
+  const [reviewStatus, setReviewStatus] = useState("");
+  const [isRevisionDraft, setIsRevisionDraft] = useState(false);
+  const [displayStatus, setDisplayStatus] = useState<string>("");
   const [step, setStep] = useState<BuilderStepNumber>(1);
 
   const [loading, setLoading] = useState(true);
@@ -129,7 +138,11 @@ export default function CourseBuilderPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const readOnly = status === "pending_review" || status === "archived";
+  const readOnly =
+    status === "in_progress" ||
+    reviewStatus === "pending_review" ||
+    status === "pending_review" ||
+    status === "archived";
 
   useEffect(() => {
     let cancelled = false;
@@ -143,6 +156,9 @@ export default function CourseBuilderPage() {
         setDraftState(toDraft(course));
         setCurriculum(course.curriculum ?? []);
         setStatus(course.status);
+        setReviewStatus(course.reviewStatus ?? "");
+        setIsRevisionDraft(Boolean(course.liveCourseId || course.isRevisionDraft));
+        setDisplayStatus(course.displayStatus ?? "");
         const fromQuery =
           typeof window !== "undefined"
             ? new URLSearchParams(window.location.search).get("step")
@@ -297,8 +313,15 @@ export default function CourseBuilderPage() {
     if (curriculum.length > 0) done.add(5);
     if (lessons.length > 0) done.add(6);
     done.add(7);
-    done.add(8);
-    if (status === "pending_review" || status === "published") done.add(9);
+    done.add(8); // Intro video optional
+    done.add(9); // Pricing
+    if (
+      status === "in_progress" ||
+      status === "pending_review" ||
+      status === "published"
+    ) {
+      done.add(10);
+    }
     return done;
   }, [curriculum, draft, status]);
 
@@ -308,6 +331,7 @@ export default function CourseBuilderPage() {
     completedSteps.has(3) &&
     completedSteps.has(5) &&
     completedSteps.has(6) &&
+    status !== "in_progress" &&
     status !== "pending_review" &&
     status !== "archived";
 
@@ -351,6 +375,9 @@ export default function CourseBuilderPage() {
         courseId={courseId}
         courseTitle={draft.title}
         status={status}
+        displayStatus={displayStatus}
+        reviewStatus={reviewStatus}
+        isRevisionDraft={isRevisionDraft}
         readOnly={readOnly}
         step={step}
         onStepChange={goToStep}
@@ -372,8 +399,9 @@ export default function CourseBuilderPage() {
         {step === 5 ? <CurriculumStep {...stepProps} /> : null}
         {step === 6 ? <LessonsStep {...stepProps} /> : null}
         {step === 7 ? <AssessmentStep {...stepProps} /> : null}
-        {step === 8 ? <PricingStep {...stepProps} /> : null}
-        {step === 9 ? (
+        {step === 8 ? <IntroVideoStep {...stepProps} /> : null}
+        {step === 9 ? <PricingStep {...stepProps} /> : null}
+        {step === 10 ? (
           <ReviewStep
             {...stepProps}
             status={status}

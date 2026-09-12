@@ -18,3 +18,7 @@ pnpm --filter @qalinraac/web dev
 Open http://localhost:3000/login
 
 Instructor first login shows a blocking onboarding modal.
+
+## Docs
+
+- [In-app notification messages](docs/NOTIFICATIONS.md) — exact titles and bodies by role (student, instructor, etc.)

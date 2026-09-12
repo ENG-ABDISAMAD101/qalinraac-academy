@@ -108,17 +108,25 @@ function RegisterForm() {
         fullName: values.fullName,
         phone: values.phone,
       });
-      router.push(destinationFor(created.role));
+      router.replace(destinationFor(created.role));
     } catch (err) {
       setFormError(
         getApiErrorMessage(err, "Could not create your account. Please try again."),
       );
-    } finally {
       setIsLoading(false);
     }
   }
 
   const signInHref = authLoginHref(redirectParam ?? undefined);
+
+  if (loading || user || isLoading) {
+    return (
+      <PageLoader
+        label={isLoading || user ? "Creating your account" : "Loading registration"}
+        className="bg-canvas"
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-canvas text-foreground">

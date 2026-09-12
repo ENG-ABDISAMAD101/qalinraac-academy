@@ -22,13 +22,16 @@ const FILTERS = [
   { label: "All", value: "all" },
   { label: "Draft", value: "draft" },
   { label: "Pending Review", value: "pending_review" },
+  { label: "In Progress", value: "in_progress" },
   { label: "Published", value: "published" },
 ] as const;
 
 const COURSE_STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
+  in_progress: "In Progress",
   pending_review: "Pending Review",
   published: "Published",
+  archived: "Archived",
 };
 
 function courseStatusLabel(status: string) {
